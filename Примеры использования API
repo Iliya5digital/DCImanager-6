@@ -1,0 +1,830 @@
+Вы можете использовать API-функции DCImanager 6 для создания интеграции с биллинговой системой. Перед их использованием авторизуйтесь в DCImanager 6 и получите код текущей сессии пользователя. Подробнее см. в статье Работа с API.
+
+Для доступа к API используйте URL вида https://domain.com/api/dci/v3/function/. 
+
+ Пояснения к URL
+domain.com — публичный IP-адрес или домен сервера с DCImanager 6;
+
+function — функция для выполнения в DCImanager 6.
+
+Информация о серверахLink to Информация о серверах
+Количество свободных серверов и их конфигурация
+curl -X GET 'https://domain.com/api/dci/v3/server/configuration'-H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true'| jq
+В ответ будет получен JSON-объект вида:
+
+{
+  "list": [
+    {
+      "configuration": "i9-9900K-64Gb-2x1024NVMe",
+      "free_server_count": 42
+    }
+  ]
+}
+ Пояснения
+configuration — конфигурация сервера;
+
+free_server_count — количество свободных серверов с этой конфигурацией.
+
+Список серверов
+curl -X GET 'https://domain.com/api/dci/v3/server' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true'| jq
+В ответ будет получен JSON-объект вида:
+
+ Ответ в JSON
+{
+  "list": [
+    {
+      "operation": {
+        "id": 0,
+        "status": "string",
+        "status_info": {},
+        "progress_info": [
+          {}
+        ]
+      },
+      "domain": "string",
+      "id": 0,
+      "os_template": {
+        "id": 0,
+        "name": "string",
+        "tags": [
+          "string"
+        ]
+      },
+      "hardware_info": {},
+      "perform_info": {},
+      "configuration": "string",
+      "settings": {
+        "efi": true
+      },
+      "state": "suspending",
+      "state_info": "string",
+      "ip": [
+        {
+          "domain": "string",
+          "family": "ipv4",
+          "gateway": "string",
+          "id": 0,
+          "name": "string",
+          "network": "string",
+          "status": "allocating",
+          "status_info": {}
+        }
+      ],
+      "switch_connection": [
+        {
+          "id": 0,
+          "switch": 0,
+          "connection_id": 0,
+          "description": "string",
+          "admin_status": "up",
+          "oper_status": "up",
+          "do_not_collect_traffic": true,
+          "is_ipmi_connection": true
+        }
+      ],
+      "pdu_connection": {
+        "port_id": 0,
+        "port_identity": "string",
+        "pdu_id": 0,
+        "pdu_name": "string",
+        "connection_id": 0,
+        "power_status": "up"
+      },
+      "ipmi": {
+        "address": "string",
+        "id": 0,
+        "status": "on",
+        "status_info": {},
+        "type": "IPMI v1.5/v2",
+        "web_url": "string"
+      },
+      "intel_amt": {
+        "address": "string",
+        "id": 0,
+        "status": "on",
+        "status_info": {},
+        "protocol": "http"
+      },
+      "location": {
+        "geolocation": "1st Street, 25",
+        "id": 0,
+        "name": "string",
+        "userspace": 0
+      },
+      "location_id": 0,
+      "mac": "string",
+      "main_ipv4": 0,
+      "main_ipv6": 0,
+      "name": "string",
+      "platform": {
+        "id": 0,
+        "name": "string",
+        "size": 0,
+        "type": "string"
+      },
+      "rack": {
+        "id": 0,
+        "name": "string",
+        "size": 0
+      },
+      "unit": 0,
+      "chassis": {
+        "id": 0,
+        "name": "string",
+        "size": 0,
+        "server_slot_count": 0
+      },
+      "slot": 0,
+      "owner": {
+        "id": 0,
+        "email": "string"
+      },
+      "owner_email": "string",
+      "diag_error": [
+        {
+          "type": "string",
+          "info": "string"
+        }
+      ],
+      "is_new": true
+    }
+  ]
+}
+ Пояснения
+operation — информация об операции, выполняемой на сервере:
+
+id — идентификатор операции;
+status — статус операции;
+progress_info — информация о ходе выполнения;
+domain — доменное имя сервера;
+
+id — идентификатор сервера;
+
+os_template — информация о шаблоне операционной системы (ОС) сервера:
+
+id — идентификатор шаблона;
+name — название шаблона;
+hardware_info — информация об оборудовании сервера;
+
+configuration — конфигурация сервера;
+
+state — cостояние сервера. Возможные значения:
+
+suspending — сервер переходит в режим приостановки;
+suspended — работа сервера приостановлена;
+suspend_error — ошибка приостановки сервера;
+resuming — работа сервера возобновлена;
+ok — сервер доступен для работы;
+resume_error — ошибка возобновления работы сервера;
+state_info — информация о состоянии сервера;
+
+ip — информация об IP-адресах сервера:
+
+domain — доменное имя;
+family — версия протокола IP. Возможные значения: ipv4, ipv6;
+gateway — IP-адрес шлюза;
+id — идентификатор IP-адреса;
+name — IP-адрес сервера;
+network — адрес сети;
+status — статус IP-адреса. Возможные значения:
+allocating — создана задача на назначение IP-адреса;
+in_progress — создана задача на изменение IP-адреса;
+deleting — создана задача на удаление IP-адреса;
+ok — IP-адрес назначен успешно;
+fail — ошибка выполнения задачи;
+allocation_fail — ошибка назначения IP-адреса;
+status_info — информация о статусе IP-адреса;
+switch_connection — информация о портах коммутатора, к которым подключен сервер:
+
+id — идентификатор порта;
+switch — идентификатор коммутатора;
+connection_id — идентификатор подключения;
+description — описание порта;
+admin_status — статус порта коммутатора, которым управляет администратор. Возможные значения:
+up — порт включен;
+down — порт выключен;
+testing — порт в состоянии test;
+unknown — неизвестное состояние порта.
+oper_status — cтатус подключения на порту коммутатора. Возможные значения:
+up — подключение установлено;
+down — подключение не установлено;
+testing — порт в состоянии test;
+unknown — информация о подключении отсутствует;
+pdu_connection — информация о порте PDU, к которому подключен сервер:
+
+port_id — идентификатор порта;
+port_identity — идентификатор порта в PDU;
+pdu_id — идентификатор PDU;
+pdu_name — имя PDU;
+connection_id — идентификатор подключения;
+power_status — состояние порта. Возможные значения:
+up — порт включен;
+down — порт выключен;
+unknown — состояние порта неизвестно;
+ipmi — информация о IPMI:
+
+address — IP-адрес IPMI;
+id — идентификатор IPMI;
+status — статус IPMI. Возможные значения:
+on — включен;
+off — выключен;
+unknown — неизвестен;
+in_progress — определяется;
+type — тип IPMI. Возможные значения:
+IPMI v1.5/v2;
+IPMI v2(lanplus);
+web_url — URL веб-интерфейса IPMI;
+location — информация о локации:
+
+geolocation — местоположение локации;
+id — идентификатор локации;
+name — имя локации;
+userspace — идентификатор адресного пространства локации в IPmanager;
+location_id — идентификатор локации;
+
+mac — MAC-адрес сервера;
+
+main_ipv4 — главный IPv4-адрес сервера. Используется для установки ОС;
+
+platform — информация о платформе сервера:
+
+id — идентификатор платформы;
+name — имя платформы;
+size — размер платформы;
+type — тип платформы;
+rack — информация о стойке, в которой находится сервер:
+
+id — идентификатор стойки;
+name — название стойки;
+size — размер стойки;
+unit — номер места в стойке.
+
+Информация о сервере по id
+curl -X GET 'https://domain.com/api/dci/v3/server/server_id' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true'| jq
+ Пояснения
+server_id — идентификатор сервера.
+
+В ответ будет получен JSON-объект вида:
+
+ Ответ в JSON
+{
+  "operation": {
+    "id": 0,
+    "status": "string",
+    "progress_info": [
+      {}
+    ]
+  },
+  "domain": "string",
+  "id": 0,
+  "os_template": {
+    "id": 0,
+    "name": "string",
+    "tags": [
+      "string"
+    ]
+  },
+  "hardware_info": {},
+  "configuration": "string",
+  "state": "suspending",
+  "state_info": "string",
+  "ip": [
+    {
+      "domain": "string",
+      "family": "ipv4",
+      "gateway": "string",
+      "id": 0,
+      "name": "string",
+      "network": "string",
+      "status": "allocating",
+      "status_info": {}
+    }
+  ],
+  "switch_connection": [
+    {
+      "id": 0,
+      "switch": 0,
+      "connection_id": 0,
+      "description": "string",
+      "admin_status": "up",
+      "oper_status": "up"
+    }
+  ],
+  "pdu_connection": {
+    "port_id": 0,
+    "port_identity": "string",
+    "pdu_id": 0,
+    "pdu_name": "string",
+    "connection_id": 0,
+    "power_status": "up"
+  },
+  "ipmi": {
+    "address": "string",
+    "id": 0,
+    "status": "on",
+    "status_info": {},
+    "type": "IPMI v1.5/v2",
+    "web_url": "string"
+  },
+  "location": {
+    "geolocation": "string",
+    "id": 0,
+    "name": "string",
+    "userspace": 0
+  },
+  "location_id": 0,
+  "mac": "string",
+  "main_ipv4": 0,
+  "name": "string",
+  "platform": {
+    "id": 0,
+    "name": "string",
+    "size": 0,
+    "type": "string"
+  },
+  "rack": {
+    "id": 0,
+    "name": "string",
+    "size": 0
+  },
+  "unit": 0
+}
+ Пояснения
+operation — информация об операции, выполняемой на сервере:
+
+id — идентификатор операции;
+status — статус операции;
+progress_info — информация о ходе выполнения;
+domain — доменное имя сервера;
+
+id — идентификатор сервера;
+
+os_template — информация о шаблоне операционной системы (ОС) сервера:
+
+id — идентификатор шаблона;
+name — название шаблона;
+tage — теги шаблона;
+hardware_info — информация об оборудовании сервера;
+
+configuration — конфигурация сервера;
+
+state — cостояние сервера. Возможные значения:
+
+suspending — сервер переходит в режим приостановки;
+suspended — работа сервера приостановлена;
+suspend_error — ошибка приостановки сервера;
+resuming — работа сервера возобновлена;
+ok — сервер доступен для работы;
+resume_error — ошибка возобновления работы сервера;
+state_info — информация о состоянии сервера;
+
+ip — информация об IP-адресах сервера:
+
+domain — доменное имя;
+family — версия протокола IP. Возможные значения: ipv4, ipv6;
+gateway — IP-адрес шлюза;
+id — идентификатор IP-адреса;
+name — IP-адрес сервера;
+network — адрес сети;
+status — статус IP-адреса. Возможные значения:
+allocating — создана задача на назначение IP-адреса;
+in_progress — создана задача на изменение IP-адреса;
+deleting — создана задача на удаление IP-адреса;
+ok — IP-адрес назначен успешно;
+fail — ошибка выполнения задачи;
+allocation_fail — ошибка назначения IP-адреса;
+status_info — информация о статусе IP-адреса;
+switch_connection — информация о портах коммутатора, к которым подключен сервер:
+
+id — идентификатор порта;
+switch — идентификатор коммутатора;
+connection_id — идентификатор подключения;
+description — описание порта;
+admin_status — статус порта коммутатора, которым управляет администратор. Возможные значения:
+up — порт включен;
+down — порт выключен;
+testing — порт в состоянии test;
+unknown — неизвестное состояние порта.
+oper_status — cтатус подключения на порту коммутатора. Возможные значения:
+up — подключение установлено;
+down — подключение не установлено;
+testing — порт в состоянии test;
+unknown — информация о подключении отсутствует;
+pdu_connection — информация о порте PDU, к которому подключен сервер:
+
+port_id — идентификатор порта;
+port_identity — идентификатор порта в PDU;
+pdu_id — идентификатор PDU;
+pdu_name — имя PDU;
+connection_id — идентификатор подключения;
+power_status — состояние порта. Возможные значения:
+up — порт включен;
+down — порт выключен;
+unknown — состояние порта неизвестно;
+ipmi — информация о IPMI:
+
+address — IP-адрес IPMI;
+id — идентификатор IPMI;
+status — статус IPMI. Возможные значения:
+on — включен;
+off — выключен;
+unknown — неизвестен;
+in_progress — определяется;
+status_info — информация о статусе IPMI;
+type — тип IPMI. Возможные значения:
+IPMI v1.5/v2;
+IPMI v2(lanplus);
+web_url — URL веб-интерфейса IPMI;
+location — информация о локации:
+
+geolocation — местоположение локации;
+id — идентификатор локации;
+name — имя локации;
+userspace — идентификатор адресного пространства локации в IPmanager;
+location_id — идентификатор локации;
+
+mac — MAC-адрес сервера;
+
+main_ipv4 — главный IPv4-адрес сервера. Используется для установки ОС;
+
+platform — информация о платформе сервера:
+
+id — идентификатор платформы;
+name — имя платформы;
+size — размер платформы;
+type — тип платформы;
+rack — информация о стойке, в которой находится сервер:
+
+id — идентификатор стойки;
+name — название стойки;
+size — размер стойки;
+unit — номер места в стойке.
+
+Операции с пользователямиLink to Операции с пользователями
+Список всех пользователей
+curl -X GET 'https://domain.com/api/dci/v3/user' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true'| jq
+В ответ будет получен JSON-объект вида:
+
+{
+  "list": [
+    {
+      "id": 0,
+      "email": "string",
+      "server_count": 0,
+      "roles": "[@user]",
+      "vlans_per_user": 5
+    }
+  ]
+}
+ Пояснения
+id — идентификатор пользователя;
+
+email — email пользователя для авторизации;
+
+server_count — количество серверов, принадлежащих пользователю;
+
+roles — список ролей пользователя. Возможные значения элементов списка: @admin — администратор, @user — пользователь;
+
+vlans_per_users — количество VLAN, доступных пользователю.
+
+Добавление пользователя
+curl -X POST 'https://domain.com/api/dci/v3/user' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true' -d '{"email":"admin@example.com","full_name":"name","password":"pass","phone_number":"phone","role":"level"}' | jq
+ Пояснения
+admin@example.com — email пользователя для авторизации;
+
+name — ФИО пользователя;
+
+pass — пароль пользователя;
+
+phone — номер телефона пользователя;
+
+level — роль пользователя. Возможные значения: @admin — администратор, @user — пользователь.
+
+В ответ будет получен JSON-объект вида:
+
+{
+  "id": 0
+}
+Назначение пользователя владельцем сервера
+curl -X POST 'https://domain.com/api/dci/v3/server/server_id/owner' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true' -d '{"owner":user_id}' | jq
+ Пояснения
+server_id — идентификатор сервера;
+
+user_id — идентификатор пользователя.
+
+В ответ будет получен JSON-объект вида:
+
+{
+  "id": 0
+}
+Освобождение сервера
+curl -X DELETE 'https://domain.com/api/dci/v3/server/server_id/owner' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true'| jq
+ Пояснения
+server_id — идентификатор сервера.
+
+В ответ будет получен JSON-объект вида:
+
+{
+  "id": 0
+}
+Операции с портами коммутатораLink to Операции с портами коммутатора
+Включить порты, к которым подключен сервер
+curl -X POST 'https://domain.com/api/dci/v3/server/server_id/resume' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true' -d '{}'| jq
+ Пояснения
+server_id — идентификатор сервера.
+
+В ответ будет получен JSON-объект вида:
+
+{
+  "id": 0,
+  "task": 0
+}
+Отключить порты, к которым подключен сервер
+curl -X POST 'https://domain.com/api/dci/v3/server/server_id/suspend' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true' -d '{}'| jq
+ Пояснения
+server_id — идентификатор сервера.
+
+В ответ будет получен JSON-объект вида:
+
+{
+  "id": 0,
+  "task": 0
+}
+Операции с питанием сервераLink to Операции с питанием сервера
+Включение
+curl -X POST 'https://domain.com/api/dci/v3/server/server_id/power_on' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true' -d '{}'| jq
+ Пояснения
+server_id — идентификатор сервера.
+
+В ответ будет получен JSON-объект вида:
+
+{
+  "id": 0,
+  "task": 0
+}
+Выключение
+curl -X POST 'https://domain.com/api/dci/v3/server/server_id/power_off' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true' -d '{}'| jq
+ Пояснения
+server_id — идентификатор сервера.
+
+В ответ будет получен JSON-объект вида:
+
+{
+  "id": 0,
+  "task": 0
+}
+Перезагрузка
+curl -X POST 'https://domain.com/api/dci/v3/server/server_id/power_reset' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true' -d '{}'| jq
+ Пояснения
+server_id — идентификатор сервера.
+
+В ответ будет получен JSON-объект вида:
+
+{
+  "id": 0,
+  "task": 0
+}
+Операции с IP-адресамиLink to Операции с IP-адресами
+Получение списка IP-адресов
+curl -X GET 'https://domain.com/api/dci/v3/ip' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true'| jq
+
+
+В ответ будет получен JSON-объект вида:
+
+{
+  "list": [
+    {
+      "domain": "string",
+      "family": "ipv4",
+      "gateway": "string",
+      "id": 0,
+      "name": "string",
+      "network": "string",
+      "server": "string",
+      "status": "allocating",
+      "status_info": {}
+    }
+  ]
+}
+ Пояснения
+domain — доменное имя сервера, которому назначен IP-адрес;
+
+family — версия протокола IP. Возможные значения: ipv4, ipv6;
+
+gateway — IP-адрес шлюза;
+
+id — идентификатор IP-адреса;
+
+name — IP-адрес;
+
+network — сеть, к которой относится IP-адрес;
+
+server — сервер, которому назначен IP-адрес;
+
+status — статус IP-адреса. Возможные значения:
+
+allocating — создана задача на назначение IP-адреса;
+in_progress — создана задача на изменение IP-адреса;
+deleting — создана задача на удаление IP-адреса;
+ok — IP-адрес назначен успешно;
+fail — ошибка выполнения задачи;
+allocation_fail — ошибка назначения IP-адреса;
+status_info — информация о статусе IP-адреса.
+
+Получение IP-адресов сервера
+curl -X GET 'https://domain.com/api/dci/v3/server/server_id/ip' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true'| jq
+ Пояснения
+server_id — идентификатор сервера.
+
+В ответ будет получен JSON-объект вида:
+
+{
+  "list": [
+    {
+      "domain": "string",
+      "family": "ipv4",
+      "gateway": "string",
+      "id": 0,
+      "name": "string",
+      "network": "string",
+      "server": "string",
+      "status": "allocating",
+      "status_info": {}
+    }
+  ]
+}
+ Пояснения
+domain — доменное имя сервера;
+
+family — версия протокола IP. Возможные значения: ipv4, ipv6;
+
+gateway — IP-адрес шлюза;
+
+id — идентификатор IP-адреса;
+
+name — IP-адрес;
+
+network — сеть, к которой относится IP-адрес;
+
+server — сервер, которому назначен IP-адрес;
+
+status — статус IP-адреса. Возможные значения:
+
+allocating — создана задача на назначение IP-адреса;
+in_progress — создана задача на изменение IP-адреса;
+deleting — создана задача на удаление IP-адреса;
+ok — IP-адрес назначен успешно;
+fail — ошибка выполнения задачи;
+allocation_fail — ошибка назначения IP-адреса;
+status_info — информация о статусе IP-адреса.
+
+Получение списка сетей
+curl -X GET 'https://domain.com/api/ip/v3/ipnet' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true'| jq
+В ответ будет получен JSON-объект вида:
+
+{
+  "list": [
+    {
+      "id": 0,
+      "name": "string",
+      "family": 2,
+      "mask": 0,
+      "gateway": "string",
+      "userspace": 0,
+      "vlan": "string",
+      "note": "string",
+      "size": "string",
+      "using_ip": "string",
+      "total_ip": "string"
+    }
+  ]
+}
+ Пояснения
+id — идентификатор сети;
+
+userspace — идентификатор адресного пространства в IPmanager.
+
+Получение списка пулов
+curl -X GET 'https://domain.com/api/ip/v3/ippool' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true'| jq
+В ответ будет получен JSON-объект вида:
+
+{
+  "list": [
+    {
+      "id": 0,
+      "name": "string",
+      "userspace": 0,
+      "note": "string",
+      "is_public": "string",
+      "using_ip": "string",
+      "using_ipv4": "string",
+      "using_ipv6": "string",
+      "total_ip": "string",
+      "total_ipv4": "string",
+      "total_ipv6": "string"
+    }
+  ]
+}
+ Пояснения
+id — идентификатор пула;
+
+userspace — идентификатор адресного пространства в IPmanager.
+
+Назначение IP-адреса серверу
+curl -X POST 'https://domain.com/api/dci/v3/server/server_id/ip' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true' -d '{"domain":"domain_name","family":"version","ip_name":"address","ip_net":net,"ip_pool":pool,"set_as_main_ipv4":main_ipv4,"userspace":userspace_id}" | jq
+ Пояснения
+server_id — идентификатор сервера;
+
+domain_name — доменное имя сервера;
+
+version — версия протокола IP. Возможные значения: ipv4, ipv6;
+
+address — IP-адрес;
+
+net — идентификатор сети, к которой относится IP-адрес;
+
+pool — идентификатор пула, к которому относится IP-адрес;
+
+main_ipv4 — установить в качестве основного IPv4-адреса. Возможные значения: true, false;
+
+userspace_id — идентификатор адресного пространства в IPmanager.
+
+В ответ будет получен JSON-объект вида:
+
+{
+  "id": 0,
+  "task": 0
+}
+Удаление IP-адреса с сервера
+curl -X POST 'https://domain.com/api/dci/v3/server/server_id/ip/ip_id' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true' -d '{}'| jq
+ Пояснения
+server_id — идентификатор сервера;
+
+ip_id — идентификатор IP-адреса.
+
+В ответ будет получен JSON-объект вида:
+
+{
+  "id": 0,
+  "task": 0
+}
+Операции с серверомLink to Операции с сервером
+Диагностика сервера
+curl -X POST 'https://domain.com/api/dci/v3/server/server_id/operation_diag' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true' -d '{"setup_ipmi":false,"ipmi_pool":0,"os_template_id":0,"clear_hdd":"none"}' | jq
+ Пояснения
+server_id — идентификатор сервера;
+
+setup_ipmi — нужно ли настраивать IPMI. Необязательный параметр. Возможные значения:
+
+true — да;
+false — нет;
+ipmi_pool — id пула, из которого нужно выделить IP-адрес для IPMI. Необязательный параметр.
+
+os_template_id — идентификатор шаблона диагностики;
+
+clear_hdd — тип очистки дисков. Возможные значения:
+
+none — без очистки;
+simple — быстрая очистка;
+full — полная очистка.
+В ответ будет получен JSON-объект вида:
+
+{
+  "id": 0,
+  "task": 0
+}
+Очистка дисков сервера
+curl -X POST 'https://domain.com/api/dci/v3/server/server_id/operation_clear_hdd' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true' -d '{"clear_hdd":"none"}' | jq
+ Пояснения
+server_id — идентификатор сервера;
+
+clear_hdd — тип очистки дисков. Возможные значения:
+
+none — без очистки;
+simple — быстрая очистка;
+full — полная очистка.
+В ответ будет получен JSON-объект вида:
+
+{
+  "id": 0,
+  "task": 0
+}
+Установка ОС
+curl -X POST 'https://domain.com/api/dci/v3/server/server_id/operation_os' -H 'Cookie: ses6=E6900A56BE7DF0FB28ED7BE7' -H 'x-xsrf-token: E6900A56BE7DF0FB28ED7BE7' -H 'isp-box-instance: true' -d '{"hdd_raid":"raid","os_template_id":template_id,"password":"pass","ssh_pub_keys":["ssh_keys"]}' | jq
+ Пояснения
+server_id — идентификатор сервера;
+
+raid — RAID-массив. Возможные значения: no_raid, raid_0, raid_1, raid_5, raid_10;
+
+template_id — идентификатор шаблона ОС;
+
+pass — пароль администратора сервера;
+
+ssh_keys — список публичных SSH-ключей.
+
+В ответ будет получен JSON-объект вида:
+
+{
+  "id": 0,
+  "task": 0
+}
