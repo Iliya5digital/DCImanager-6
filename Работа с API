@@ -1,0 +1,291 @@
+Общая информацияLink to Общая информация
+API URL
+Для доступа к API используйте URL вида https://domain.com/api/service/api_version/function/. 
+
+ Пояснения к URL
+domain.com — публичный IP-адрес или домен сервера с DCImanager 6
+
+service — внутренний сервис для обработки запроса:
+
+auth — сервис авторизации;
+dci — DCImanager 6 API — основной сервис платформы;
+eservice — Equipment service — сервис работы с оборудованием;
+ip — IPmanager 6 — сервис для работы с IP-адресами, пулами и сетями;
+ipmiproxy — IPMI Proxy service — сервис проксирования для подключения к BMC;
+ldap — LDAP service — сервис синхронизации с каталогом LDAP
+api_version — текущая версия API:
+
+dci, eservice, ip, ipmiproxy — v3;
+auth, ldap — v4
+function — функция для выполнения в DCImanager 6
+
+Методы HTTP-запросов
+DCImanager 6 поддерживает методы GET, POST и DELETE.
+
+Параметры POST-запроса
+Чтобы передать параметры для POST-запроса, укажите их в теле запроса в формате JSON. 
+
+Формат ответа
+Ответ на API-запросы приходит в виде JSON-объектов, например:
+
+Сообщение об ошибке в JSON
+
+{
+  "error":
+  {
+    "code": <внутренний код ошибки, int>,
+    "msg": <сообщение об ошибке, string>,
+    "value": <дополнительная информация, object>
+  }
+}
+Как обрабатывать код 503Link to Как обрабатывать код 503
+Если сервис платформы длительное время неактивен, то он может быть приостановлен. В этом случае API-запросы завершаются с кодом 503. Повторяйте запросы, пока в ответ не будет получен другой код:
+
+Пример реализации на Python 3
+
+from urllib3.util.retry import Retry
+from requests import Session
+from requests.adapters import HTTPAdapter
+
+HEADER_XSRT_TOKEN = "x-xsrf-token"
+HEADER_BOX = "isp-box-instance"
+COOKIE_SES6 = "ses6"
+# укажите ID сессии DCImanager 6
+SESSION6 = "6BA7C69DCB7DF4DACFFC7E56" 
+
+
+def _make_retry_object():
+    """
+    Создаём объект для повторных попыток API:
+    total - количество попыток
+    backoff_factor - влияет на задержку между запросами
+    method_whitelist - список методов, для которых повторяем запросы
+    status_forcelist - список статусов, для которых повторяем запросы
+    ---
+    retries и backoff_factor подобраны таким образом, чтобы запрос не зависал
+    на слишком долгое время
+    """
+    retries = 10
+    return Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        method_whitelist=['POST', 'GET', 'DELETE'],
+        backoff_factor=0.01,
+        status_forcelist=[503]
+    )
+
+
+def _make_session():
+    """
+    Создаём объект request.Session с повтором 503 запросов
+    """
+    session = Session()
+    session.verify = False
+    session.mount("http", HTTPAdapter(max_retries=_make_retry_object()))
+    session.mount("https", HTTPAdapter(max_retries=_make_retry_object()))
+    return session
+
+
+sess = _make_session()
+res = sess.get(
+    'https://127.0.0.1/api/dci/v3/server/2',
+    headers={HEADER_XSRT_TOKEN: SESSION6, HEADER_BOX: 'true'},
+    cookies={COOKIE_SES6: SESSION6},
+    verify=False
+)
+res.raise_for_status()
+print(res.json())
+Способы авторизацииLink to Способы авторизации
+Доступность функций по API делится на 3 уровня: 
+
+публичные функции — можно вызвать без авторизации;
+функции пользователя — можно вызвать с уровнем доступа "Пользователь"; 
+функции администратора — можно вызвать с уровнем доступа "Администратор". 
+Для проверки текущего уровня доступа DCImanager 6 ищет в HTTP-заголовке параметр x-xsrf-token и cookie-файл с именем ses6. В них должен содержаться токен авторизации для текущей сессии пользователя. Чтобы получить токен, используйте авторизацию по логину и паролю или по одноразовому ключу. 
+
+
+Обратите внимание!
+
+Если вы выполняете запрос локально на сервере с платформой, добавьте к запросу HTTP-заголовок со значением isp-box-instance: true.
+
+Авторизация по логину и паролю
+Отправьте POST-запрос на URL вида https://domain.com/auth/v4/public/token. 
+
+Тело запроса в JSON
+
+{
+  "email": "admin@example.com",
+  "password": "secret"
+}
+ Пояснения
+admin@example.com — email администратора платформы
+
+secret — пароль администратора платформы
+
+Использование в curl
+
+curl -X POST 'https://domain.com/api/auth/v4/public/token' -d '{"email": "admin@example.com", "password": "secret"}'
+Обработайте ответ. Он может содержать сообщение об ошибке, либо JSON вида: 
+
+
+
+Ответ в JSON
+
+{
+  "confirmed":true, 
+  "id":"24",
+  "token":"24-cee181d2-ccaa-4b64-a229-234aa7a25db6"
+}
+ Пояснения
+id — идентификатор токена
+
+token — значение токена
+
+Используйте значение токена в заголовке HTTP-запроса, например:
+
+Использование в curl
+
+curl -X POST 'https://domain.com/api/dci/v3/setting/operation_change_boot_order' -H 'Cookie: ses6=24-cee181d2-ccaa-4b64-a229-234aa7a25db6' -H 'x-xsrf-token: 24-cee181d2-ccaa-4b64-a229-234aa7a25db6' -H 'isp-box-instance: true' -d '{"value": "true"}'
+В случае ошибки будет получено сообщение вида: 
+
+Ошибка при авторизации
+
+{
+  "error":
+  {
+    "code": 3001,
+    "msg":"Unauthorized"
+  }
+}
+Если в течение 60 минут токен авторизации не использовался, он будет удалён. Чтобы получить токен с нужным временем жизни, отправьте POST-запрос на URL вида https://domain.com/auth/v4/token:
+
+Тело запроса в JSON
+
+{
+"expires_at": <time>,
+"description": <comment>
+}
+ Пояснения
+<time> — срок действия токена в формате YYYY-MM-DD HH:MM:SS
+
+<comment> — произвольный комментарий
+
+Ответ будет содержать новый токен с заданным сроком действия.
+
+Использование в curl
+
+curl -X POST 'https://domain.com/auth/v4/token' -d '{"expires_at": "2030-01-31 00:00:00", "description": "Token for integration"}' -H 'x-xsrf-token: 4-e9726dd9-61d9-2940-add3-914851d2cb8a'
+Изменение времени жизни токена и сессии
+По умолчанию время жизни токена и сессии — 60 минут. Чтобы изменить этот параметр, отправьте POST-запрос на URL вида https://domain.com/auth/v4/setting/token_ttl:
+
+Тело запроса в JSON
+
+{
+"value": "<time>"
+}
+ Пояснения
+<time> — время жизни токена (сессии) в минутах
+
+Использование в curl
+
+curl -X POST 'https://domain.com/auth/v4/setting/token_ttl' -d '{"value": "999"}' -H 'x-xsrf-token: 4-e9726dd9-61d9-2940-add3-914851d2cb8a' -H 'Cookie:ses6=4-e9726dd9-61d9-2940-add3-914851d2cb8a'
+Сквозная авторизация по ключу
+DCImanager 6 поддерживает сквозную авторизацию пользователя с использованием логина и пароля администратора. Например, её можно использовать для авторизованного перехода из биллинговой системы в DCImanager 6 или предоставления временного доступа пользователя к платформе. Время действия такого ключа — один час.
+
+Отправьте POST-запрос на URL вида https://domain.com/auth/v4/public/token. 
+
+Тело запроса в JSON
+
+{
+  "email": "admin@example.com",
+  "password": "secret"
+}
+ Пояснения
+admin@example.com — email администратора платформы
+
+secret — пароль администратора платформы
+
+Использование в curl
+
+curl -X POST 'https://domain.com/api/auth/v4/public/token' -d '{"email": "admin@example.com", "password": "secret"}'
+Обработайте ответ. Он может содержать сообщение об ошибке, либо JSON вида: 
+
+Ответ в JSON
+
+{
+  "confirmed":true,
+  "id":"24",
+  "token":"24-cee181d2-ccaa-4b64-a229-234aa7a25db6"
+}
+ Пояснения
+id — идентификатор токена
+
+token — значение токена
+
+Отправьте POST-запрос для создания ключа: 
+
+Создать ключ для авторизации
+
+curl -X POST 'https://domain.com/api/auth/v4/user/client@example.com/key'  -H 'x-xsrf-token: 24-cee181d2-ccaa-4b64-a229-234aa7a25db6' -H 'isp-box-instance: true'  -d '{}'
+ Пояснения
+client@example.com — email учётной записи, для которой формируется ключ. Вы можете использовать id учётной записи вместо email
+
+В ответ будет получен JSON-объект вида: 
+
+Ответ в JSON
+
+{
+  "id":"4",
+  "key":"4-74e7c0e9-a5ff-4f52-a2ac-ed03c6ed1e21"
+}
+ Пояснения
+id — идентификатор ключа
+
+key — значение ключа
+
+
+Обратите внимание!
+
+По этому ключу вы можете предоставить пользователю временный доступ к платформе.  Для авторизации пользователю нужно открыть ссылку вида https://domain.com/auth/key-v4/<key>
+
+ Пояснения
+domain.com — доменное имя или IP-адрес сервера с DCImanager 6
+
+<key> — ключ доступа
+
+Чтобы получить значение токена по временному ключу, отправьте POST-запрос: 
+
+Получить значение токена по ключу
+
+curl -k -X POST 'https://domain.com/api/auth/v4/public/key' -H "isp-box-instance: true" -d '{"key": "4-74e7c0e9-a5ff-4f52-a2ac-ed03c6ed1e21"}'
+В ответ будет получен JSON-объект вида: 
+
+Ответ в JSON
+
+{
+  "confirmed":true,
+  "id":"123",
+  "token":"1996-0082f9c6-0b07-43ca-b4e7-449c6b0df71f"
+}
+ Пояснения
+id — идентификатор токена
+
+token — значение токена
+
+Используйте значение токена в заголовке HTTP-запроса, например:
+
+Использование в curl
+
+curl -X POST 'https://domain.com/api/dci/v3/setting/operation_change_boot_order' -H 'Cookie: 1996-0082f9c6-0b07-43ca-b4e7-449c6b0df71f' -H 'x-xsrf-token: 1996-0082f9c6-0b07-43ca-b4e7-449c6b0df71f' -H 'isp-box-instance: true' -d '{"value": "true"}'
+В случае ошибки будет получено сообщение вида: 
+
+Ошибка при авторизации
+
+{
+  "error":
+  {
+    "code": 3001,
+    "msg":"Unauthorized"
+  }
+}
