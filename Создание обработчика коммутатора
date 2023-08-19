@@ -1,0 +1,202 @@
+Вы можете добавить в DCImanager 6 собственный обработчик коммутатора. Для этого создайте код обработчика и загрузите его в платформу.
+
+Подготовка окруженияLink to Подготовка окружения
+Обработчик коммутатора должен быть написан на языке Python. Рекомендуем использовать версию Python 3.9.
+
+Вы можете создать обработчик на основе существующего проекта. Чтобы скопировать проект, подключитесь к серверу-локации DCImanager 6 по SSH и выполните команду: 
+
+docker cp eservice_handler:/opt/ispsystem/equip_handler ./
+При создании обработчика могут быть полезны директории проекта:
+
+/common — общие вспомогательные классы и функции;
+/switch_common — вспомогательные классы и функции для работы с коммутаторами;
+/switch_common/handlers — обработчики коммутаторов.
+Требуемые библиотеки Python и их версии вы можете посмотреть в файле проекта requirements.txt. Чтобы установить нужные библиотеки, выполните команду: 
+
+pip3 install -r requirements.txt
+Для проверки типов данных в проекте рекомендуем использовать анализатор mypy.
+
+Создание обработчикаLink to Создание обработчика
+Класс для работы с коммутатором
+Класс коммутатора наследуется от класса:
+
+BaseSnmpSwitch — для устройств, работающих через протокол SNMP;
+BaseSwitch — для остальных устройств.
+Класс BaseSnmpSwitch содержит методы взаимодействия с коммутаторами по протоколу SNMP:
+
+snmp_get — выполнить запрос чтения по определённому OID;
+snmp_set — выполнить модифицирующий запрос по определённому OID;
+snmp_walk — выполнить запрос, результатом которого будет список.
+Пример описания класса
+
+class ExampleHandlerSnmp(BaseSnmpSwitch):
+    """Example handler class."""
+
+    def __init__(self, switch_data: SwitchSnmpData):
+        """__init__.
+
+        Args:
+            switch_data (SwitchSnmpData): Switch connection data
+        """
+        super().__init__(switch_data)
+Чтобы получить данные для подключения к коммутатору, используйте метод self.switch_data:
+
+Пример для получения community
+
+self.switch_data.snmp_params[“community”]
+Примеры SNMP-запросов к коммутатору:
+
+Получение имени устройства
+
+result = self.snmp_get("1.3.6.1.2.1.1.5.0")
+print(result.value)
+Изменение имени устройства
+
+self.snmp_set("1.3.6.1.2.1.1.5.0", "test.switch")
+Получение данных о системе устройства
+
+for elem in self.snmp_walk("1.3.6.1.2.1.1"):
+    print(elem.value)
+Каждый файл-обработчик должен содержать функцию make_handler. Эта функция создаёт объект обработчика:
+
+Пример функции
+
+def make_handler(switch_data: SwitchSnmpData) -> BaseSnmpSwitch:
+    """Create switch handler object.
+
+    Args:
+        switch_data (SwitchSnmpData): Switch connection data
+        for selected protocol.
+
+    Returns:
+        BaseSwitch: Initialized switch handler object
+    """
+    return ExampleHandlerSnmp(switch_data)
+Методы для работы с коммутатором
+Чтобы DCImanager 6 мог взаимодействовать с коммутатором, переопределите методы класса BaseSwitch:
+
+status — опрос коммутатора;
+port_up — включение порта;
+port_down — выключение порта;
+port_speed — изменение скорости порта;
+port_duplex — изменение дуплекса порта;
+port_edit — редактирование порта; 
+
+
+Обратите внимание!
+
+Используйте этот метод вместо port_speed и port_duplex для коммутаторов, не позволяющих изменить скорость и дуплекc по отдельности. Например, Arista.
+
+get_statistic — сбор статистики;
+vlan_create — создание VLAN;
+vlan_delete — удаление VLAN;
+add_port_to_vlan — добавление порта во VLAN.
+Для каждого метода существуют типы аргументов и возвращаемые значения, которые ожидает платформа. Сервис работы с оборудованием при взаимодействии с коммутатором использует не "сырые" json-данные, а их объектное представление. Например, для включения порта методом port_up в качестве параметра передаётся объект класса SwitchPortView cо свойствами:
+
+if_index — идентификатор порта коммутатора;
+admin_status — состояние порта коммутатора в DCImanager 6.
+В ответе ожидается объект того же класса со свойствами:
+
+admin_status — текущее состояние порта;
+oper_status — статус подключения.
+При переопределении методов укажите требуемый формат запросов и возвращаемых значений. Все вспомогательные представления описаны в файле проекта /switch_common/helper.py.
+
+Загрузка обработчика в платформуLink to Загрузка обработчика в платформу
+
+Чтобы загрузить обработчик в платформу:
+
+Создайте директорию со следующей структурой:
+
+handler_dir/
+├── __init__.py
+└── my_handler.py
+ Пояснения
+handler_dir — имя директории. В платформе не должно быть директории обработчика с таким же именем.
+
+__init__.py — файл инициализации. Если такого файла нет, создайте пустой файл с этим именем.
+
+my_handler.py — файл обработчика
+
+Создайте архив tar.gz с этой директорией: 
+
+tar -czvf custom_handler.tar.gz handler_dir
+ Пояснения к команде
+custom_handler.tar.gz — имя архива
+
+handler_dir –- имя созданной директории с обработчиком
+
+Авторизуйтесь в DCImanager 6 с правами администратора: 
+
+curl -o- -k https://domain.com/api/auth/v4/public/token \
+    -H "isp-box-instance: true" \
+    -d '{
+        "email": "<admin_email>",
+        "password": "<admin_pass>"
+    }'
+ Пояснения к команде
+domain.com — доменное имя сервера c DCImanager 6
+
+<admin_email> — email администратора DCImanager 6
+
+<admin_pass> — пароль администратора DCImanager 6
+
+В ответ придёт сообщение вида: 
+
+{"id":"24","token":"24-cee181d2-ccaa-4b64-a229-234aa7a25db6"}
+Сохраните из полученного ответа значение параметра token — токена авторизации.
+
+Создайте описание для обработчика: 
+
+curl -o- -k https://domain.com/api/eservice/v3/custom_equipment \
+    -H "isp-box-instance: true" \
+    -H "x-xsrf-token: <token>" \
+    -d '{
+        "device_type": "<device>",
+        "handler": "<internal_handler_name>",
+        "name": "<handler_name>",
+        "protocol": ["<handler_protocol>"],
+        "features": []
+    }'
+ Пояснения к команде
+domain.com — доменное имя сервера c DCImanager 6
+
+<token> — токен авторизации
+
+<device> — тип устройства. Возможные значения:
+
+switch — коммутатор;
+pdu — PDU;
+vpu — VPU
+<internal_handler_name> — уникальное внутреннее имя обработчика
+
+<handler_name> — имя обработчика для отображения в интерфейсе платформы
+
+<handler_protocol> — протокол для работы с обработчиком. Например, snmp
+
+Ответ будет содержать id созданного разработчика. Сохраните это значение.
+
+Пример ответа
+
+{"id": 1}
+Загрузите архив с обработчиком в платформу: 
+
+curl -o- -k https://domain.com/api/eservice/v3/custom_equipment/<handler_id>/content \
+    -H "isp-box-instance: true" \
+    -H "x-xsrf-token: <token>" \
+    -F "data=@custom_handler.tar.gz" \
+    -F "handler_import=<import_path>"
+ Пояснения к команде
+domain.com — доменное имя сервера c DCImanager 6
+
+<handler_id> — id обработчика
+
+<token> — токен авторизации
+
+custom_handler.tar.gz — имя архива с обработчиком
+
+<import_path> — относительный путь для импорта. Например, если файл обработчика my_handler.py находится в директории handler_dir, то относительный путь будет handler_dir.my_handler
+
+
+Обратите внимание!
+
+Вы также можете использовать эту команду для загрузки новых версий обработчика в платформу.
