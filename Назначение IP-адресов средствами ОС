@@ -1,0 +1,141 @@
+DCImanager 6 назначает IP-адреса серверу автоматически во время переустановки операционной системы (ОС). Вы можете назначить IP-адреса на сервер вручную. Порядок назначения зависит от операционной системы сервера.
+
+
+Обратите внимание!
+
+Будьте внимательны при изменении сетевых настроек вручную. Если указать некорректные данные, сетевое подключение на сервере может быть разорвано. В этом случае удалённая работа с сервером будет возможна только через BMC.
+
+AlmaLinuxLink to AlmaLinux
+Чтобы назначить IP-адреса:
+
+Подключитесь к серверу по SSH с правами суперпользователя. 
+
+ Чтобы назначить IPv4-адрес
+Чтобы назначить IPv4-адрес, укажите сетевые настройки в файле /etc/sysconfig/network-scripts/ifcfg-<interface>, где <interface> — имя сетевого интерфейса. Например, /etc/sysconfig/network-scripts/ifcfg-eth0.
+
+Пример настроек
+
+DEVICE=eth0
+ONBOOT=yes
+BOOTPROTO=static
+IPADDR=192.168.1.100
+NETMASK=255.255.255.0
+GATEWAY=192.168.1.1
+ Пояснения к примеру
+DEVICE — имя интерфейса
+
+IPADDR — IP-адрес
+
+NETMASK — сетевая маска
+
+GATEWAY — IP-адрес шлюза
+
+ Чтобы назначить IPv6-адрес
+Чтобы назначить IPv6-адрес, добавьте настройки IPv6 в файл сетевого интерфейса /etc/sysconfig/network-scripts/ifcfg-<interface>, где <interface> - имя интерфейса. Например, /etc/sysconfig/network-scripts/ifcfg-eth0.
+
+Пример настроек
+
+IPV6INIT=yes
+IPV6ADDR=2001:0DB8::/64
+IPV6_DEFAULTGW=2001:0DB8::1
+ Пояснения к примеру
+IPV6ADDR — IPv6-адрес с префиксом сети
+
+IPV6_DEFAULTGW — IP-адрес шлюза
+
+Перезапустите сервис networking:
+
+nmcli networking off && nmcli networking on
+CentOSLink to CentOS
+Чтобы назначить IP-адреса:
+
+Подключитесь к серверу по SSH с правами суперпользователя. 
+
+ Чтобы назначить IPv4-адрес
+Чтобы назначить IPv4-адрес, укажите сетевые настройки в файле /etc/sysconfig/network-scripts/ifcfg-<interface>, где <interface> — имя сетевого интерфейса. Например, /etc/sysconfig/network-scripts/ifcfg-eth0.
+
+Пример настроек
+
+DEVICE=eth0
+ONBOOT=yes
+BOOTPROTO=static
+IPADDR=192.168.1.100
+NETMASK=255.255.255.0
+GATEWAY=192.168.1.1
+ Пояснения к примеру
+DEVICE — имя интерфейса
+
+IPADDR — IP-адрес
+
+NETMASK — сетевая маска
+
+GATEWAY — IP-адрес шлюза
+
+ Чтобы назначить IPv6-адрес
+Чтобы назначить IPv6-адрес:
+
+Включите поддержку IPv6 в ОС. Для этого добавьте в файл /etc/sysconfig/network строку: 
+
+NETWORKING_IPV6=yes
+Добавьте настройки IPv6 в файл сетевого интерфейса /etc/sysconfig/network-scripts/ifcfg-<interface>, где <interface> - имя интерфейса. Например, /etc/sysconfig/network-scripts/ifcfg-eth0.
+
+Пример настроек
+
+IPV6INIT=yes
+IPV6ADDR=2001:0DB8::/64
+IPV6_DEFAULTGW=2001:0DB8::1
+ Пояснения к примеру
+IPV6ADDR — IPv6-адрес с префиксом сети
+
+IPV6_DEFAULTGW — IP-адрес шлюза
+
+Перезапустите сервис network:
+
+systemctl restart network
+Debian, Ubuntu, Astra LinuxLink to Debian, Ubuntu, Astra Linux
+Чтобы назначить IP-адреса: 
+
+Подключитесь к серверу по SSH с правами суперпользователя. 
+Укажите сетевые настройки в файле /etc/network/interfaces:
+
+ Чтобы назначить IPv4-адрес
+Чтобы назначить IPv4-адрес:
+
+Пример настроек
+
+iface ens3 inet static
+  address 192.168.2.100
+  netmask 255.255.255.0
+  gateway 192.168.2.1
+  auto ens3
+ Пояснения к примеру
+ens3 — сетевой интерфейс
+
+address — IP-адрес
+
+netmask — маска сети
+
+gateway — IP-адрес шлюза
+
+ Чтобы назначить IPv6-адрес
+Чтобы назначить IPv6-адрес:
+
+Пример настроек
+
+iface ens3 inet6 static
+  address 2001:0DB8::
+  netmask 64
+  gateway 2001:0DB8::1
+  auto ens3
+ Пояснения к примеру
+ens3 — сетевой интерфейс
+
+address — IPv6-адрес
+
+netmask — длина префикса подсети
+
+gateway — IP-адрес шлюза
+
+Перезапустите сервис networking:
+
+systemctl restart networking
