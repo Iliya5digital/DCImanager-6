@@ -1,0 +1,32 @@
+DCImanager 6 управляет питанием серверов через PDU и BMC (Intel AMT). Порядок управления зависит от статусов BMC (Intel AMT) сервера и порта PDU, к которому сервер подключен. Вы можете настроить управление питанием сервера через PDU, независимо от состояния BMC (Intel AMT).
+
+Чтобы включить управление питанием сервера только через PDU, подключитесь к серверу с DCImanager 6 по SSH и выполните команду:
+
+curl -k -# -d '{"value": "true"}' -H "Cookie: ses6=<session_id>" -H "x-xsrf-token: <session_id>" -H "isp-box-instance: true" -o- "https://domain.com/dci/v3/setting/power_pdu_only"
+ Пояснения к команде
+domain.com — IP-адрес или доменное имя сервера с DCImanager 6
+
+<session_id> — id сессии. Подробнее см. в статье Работа с API
+
+При успешном выполнении команды в ответ будет получен JSON-объект вида:
+
+Ответ в JSON
+
+{
+  "power_pdu_only": "true"
+}
+Чтобы отключить управление питанием сервера только через PDU, выполните команду:
+
+curl -k -# -d '{"value": "false"}' -H "Cookie: ses6=<session_id>" -H "x-xsrf-token: <session_id>" -H "isp-box-instance: true" -o- "https://domain.com/dci/v3/setting/power_pdu_only"
+ Пояснения к команде
+domain.com — IP-адрес или доменное имя сервера с DCImanager 6
+
+<session_id> — id сессии. Подробнее см. в статье Работа с API
+
+При успешном выполнении команды в ответ будет получен JSON-объект вида:
+
+Ответ в JSON
+
+{
+  "power_pdu_only": "false"
+}
