@@ -1,0 +1,336 @@
+Вы можете добавить в DCImanager 6 собственный обработчик PDU. Для этого создайте код обработчика и загрузите его в платформу.
+
+Подготовка окруженияLink to Подготовка окружения
+Обработчик PDU должен быть написан на языке Python. Рекомендуем использовать версию Python 3.9.
+
+Вы можете создать обработчик на основе существующего проекта. Чтобы скопировать проект, подключитесь к серверу-локации DCImanager 6 по SSH и выполните команду: 
+
+docker cp eservice_handler:/opt/ispsystem/equip_handler ./
+При создании обработчика могут быть полезны директории проекта:
+
+/common — общие вспомогательные классы и функции;
+/pdu_common — вспомогательные классы и функции для работы с PDU;
+/pdu_common/handlers — обработчики PDU.
+Требуемые библиотеки Python и их версии вы можете посмотреть в файле проекта requirements.txt. Чтобы установить нужные библиотеки, выполните команду: 
+
+pip3 install -r requirements.txt
+Для проверки типов данных в проекте рекомендуем использовать анализатор mypy.
+
+Создание обработчикаLink to Создание обработчика
+Класс для работы с PDU
+Класс PDU наследуется от класса:
+
+BaseSnmpPdu — для устройств, работающих через протокол SNMP;
+BasePdu — для остальных устройств.
+Класс BaseSnmpPdu содержит методы взаимодействия с PDU по протоколу SNMP:
+
+snmp_get — выполнить запрос чтения по определённому OID;
+snmp_set — выполнить модифицирующий запрос по определённому OID;
+snmp_walk — выполнить запрос, результатом которого будет список.
+Пример описания класса
+
+class ExampleHandlerSnmp(BaseSnmpPdu):
+    """Example handler class."""
+
+    def __init__(self, pdu_data: PduSnmpData):
+        """__init__.
+
+        Args:
+            pdu_data (PduSnmpData): pdu connection data
+        """
+        super().__init__(pdu_data)
+Чтобы получить данные для подключения к PDU, используйте метод self.pdu_data:
+
+Пример для получения community
+
+self.pdu_data.snmp_params[“community”]
+Примеры SNMP-запросов к PDU:
+
+Получение имени устройства
+
+result = self.snmp_get("1.3.6.1.2.1.1.5.0")
+print(result.value)
+Изменение имени устройства
+
+self.snmp_set("1.3.6.1.2.1.1.5.0", "test.pdu")
+Получение данных о системе устройства
+
+for elem in self.snmp_walk("1.3.6.1.2.1.1"):
+    print(elem.value)
+Каждый файл-обработчик должен содержать функцию make_handler. Эта функция создаёт объект обработчика:
+
+Пример функции
+
+def make_handler(pdu_data: pduSnmpData) -> BaseSnmpPdu:
+    """Create pdu handler object.
+
+    Args:
+        pdu_data (PduSnmpData): pdu connection data
+        for selected protocol.
+
+    Returns:
+        BasePdu: Initialized pdu handler object
+    """
+    return ExampleHandlerSnmp(pdu_data)
+Методы для работы с PDU
+Чтобы DCImanager 6 мог взаимодействовать с PDU, переопределите методы класса BasePdu:
+
+status — опрос PDU;
+port_up — включение порта;
+port_down — выключение порта;
+statistic — сбор статистики.
+Для каждого метода существуют типы аргументов и возвращаемые значения, которые ожидает платформа. Сервис работы с оборудованием при взаимодействии с PDU использует не "сырые" json-данные, а их объектное представление. Например, для включения порта методом port_up в качестве параметра передаётся объект класса PduPortView cо свойствами:
+
+identify — идентификатор порта PDU;
+power_status — состояние порта PDU в DCImanager 6.
+В ответе ожидается объект того же класса с текущим состоянием порта в свойстве power_status.
+
+При переопределении методов укажите требуемый формат запросов и возвращаемых значений. Все вспомогательные представления описаны в файле проекта /pdu_common/helper.py.
+
+Пример кода обработчика
+
+
+ Пример кода
+from typing import Optional, Union
+
+from common.logger import get_logger
+from common.misc import waiter, InversionDict, Oid
+from pdu_common.base_snmp_pdu import BaseSnmpPdu
+from pdu_common.connection import PduSnmpData
+from pdu_common.helper import PduView, PduPortView, EnumPowerStatus, PduStatisticView, PduPortStatisticView
+
+
+OID_RPCM_ADMINISTRATIVE_STATE = Oid("1.3.6.1.4.1.46235.2.4.2.1.4")
+
+# Amperage of each output port in mA
+OID_RPCM_OUTPUT_MILLIAMPS = Oid("1.3.6.1.4.1.46235.2.4.2.1.11")
+
+# Energy of each output port in kW/h
+OID_RPCM_OUTPUT_ENERGY_KWH = Oid("1.3.6.1.4.1.46235.2.4.2.1.15")
+
+
+PORT_POWER_DICT = InversionDict(
+    {
+        EnumPowerStatus.UP: 1,
+        EnumPowerStatus.DOWN: 0,
+    }
+)
+
+
+def make_handler(pdu_data: PduSnmpData) -> BaseSnmpPdu:
+    """
+    Returns APC PDU handler object
+    :param pdu_data: Snmp PDU data object
+    :return:
+    """
+
+    return Rpcm(pdu_data)
+
+
+class Rpcm(BaseSnmpPdu):
+    """PDU Rpcm work class"""
+
+    def status(self) -> PduView:
+        """
+        GetPduPortsStatus
+        :return: PduView
+        """
+
+        pdu_info = PduView()
+
+        for port in self.snmp_walk(OID_RPCM_ADMINISTRATIVE_STATE):
+            pdu_info.ports.append(
+                PduPortView(
+                    identity=port.oid_index,
+                    power_status=PORT_POWER_DICT.get_by_value(port.value_int, EnumPowerStatus.UNKNOWN),
+                )
+            )
+
+        return pdu_info
+
+    def __get_port_status(
+        self, pdu_port_data: PduPortView, wait_for_status: Optional[EnumPowerStatus] = None
+    ) -> PduPortView:
+        """
+        Get current PDU port status
+        :param pdu_port_data: PduPortView
+        :return: Modified PduPortView
+        """
+
+        logging.info(f"Get status for PDU port '{pdu_port_data.identity}'")
+
+        port_status_oid = OID_RPCM_ADMINISTRATIVE_STATE + pdu_port_data.identity
+
+        if wait_for_status is not None:
+            matcher = lambda response: response == wait_for_status
+        else:
+            matcher = lambda response: not isinstance(response, Exception)
+
+        @waiter
+        def get_status() -> Union[EnumPowerStatus, Exception]:
+            """Waiter for PDU status"""
+            try:
+                res = self.snmp_get(oid=port_status_oid).value_int
+                return PORT_POWER_DICT.get_by_value(res, EnumPowerStatus.UNKNOWN)
+            except Exception as error:
+                return error
+
+        logging.info(f"Get status '{pdu_port_data.power_status}' for PDU port '{pdu_port_data.identity}'")
+
+        # waiting for status change to expected
+        pdu_port_data.power_status = get_status(matcher=matcher, timeout=10)
+        return pdu_port_data
+
+    def __port_change_status(self, pdu_port_data: PduPortView, power_status: EnumPowerStatus) -> PduPortView:
+        """Changing PDU port power status.
+
+        Args:
+            pdu_port_data (PduPortView): port
+            power_status (EnumPowerStatus): new power status
+
+        Returns:
+            PduPortView: final port status
+        """
+
+        self.snmp_set(
+            oid=OID_RPCM_ADMINISTRATIVE_STATE + pdu_port_data.identity,
+            value=PORT_POWER_DICT[power_status],
+        )
+        return self.__get_port_status(pdu_port_data, power_status)
+
+    def port_up(self, pdu_port_data: PduPortView) -> PduPortView:
+        """Port up"""
+        return self.__port_change_status(pdu_port_data, EnumPowerStatus.UP)
+
+    def port_down(self, pdu_port_data: PduPortView) -> PduPortView:
+        """Port down"""
+        return self.__port_change_status(pdu_port_data, EnumPowerStatus.DOWN)
+
+    def statistic(self) -> PduStatisticView:
+        """
+        Get PDU statistic.
+        :return: PduStatisticView
+        """
+
+        pdu_statistic = PduStatisticView()
+
+        logging.info("Get PDU load in Amps...")
+        pdu_statistic.load = sum(port.value_float for port in self.snmp_walk(OID_RPCM_OUTPUT_MILLIAMPS)) / 1000
+
+        ports_consumption = self.snmp_walk(OID_RPCM_OUTPUT_ENERGY_KWH)
+
+        logging.info("Get PDU total energy in kWh...")
+        pdu_statistic.total_consumption = float(sum(port.value_float for port in ports_consumption))
+
+        logging.info("Get PDU energy in kWh for every port...")
+        for port in ports_consumption:
+            pdu_statistic.ports.append(
+                PduPortStatisticView(
+                    port_identity=port.oid_index,
+                    port_consumption=port.value_float,
+                )
+            )
+
+        return pdu_statistic
+
+
+logging = get_logger("rpcm")
+
+Загрузка обработчика в платформу
+Чтобы загрузить обработчик в платформу:
+
+Создайте директорию со следующей структурой:
+
+handler_dir/
+├── __init__.py
+└── my_handler.py
+ Пояснения
+handler_dir — имя директории. В платформе не должно быть директории обработчика с таким же именем.
+
+__init__.py — файл инициализации. Если такого файла нет, создайте пустой файл с этим именем.
+
+my_handler.py — файл обработчика
+
+Создайте архив tar.gz с этой директорией: 
+
+tar -czvf custom_handler.tar.gz handler_dir
+ Пояснения к команде
+custom_handler.tar.gz — имя архива
+
+handler_dir –- имя созданной директории с обработчиком
+
+Авторизуйтесь в DCImanager 6 с правами администратора: 
+
+curl -o- -k https://domain.com/api/auth/v4/public/token \
+    -H "isp-box-instance: true" \
+    -d '{
+        "email": "<admin_email>",
+        "password": "<admin_pass>"
+    }'
+ Пояснения к команде
+domain.com — доменное имя сервера c DCImanager 6
+
+<admin_email> — email администратора DCImanager 6
+
+<admin_pass> — пароль администратора DCImanager 6
+
+В ответ придёт сообщение вида: 
+
+{"id":"24","token":"24-cee181d2-ccaa-4b64-a229-234aa7a25db6"}
+Сохраните из полученного ответа значение параметра token — токена авторизации.
+
+Создайте описание для обработчика: 
+
+curl -o- -k https://domain.com/api/eservice/v3/custom_equipment \
+    -H "isp-box-instance: true" \
+    -H "x-xsrf-token: <token>" \
+    -d '{
+        "device_type": "<device>",
+        "handler": "<internal_handler_name>",
+        "name": "<handler_name>",
+        "protocol": ["<handler_protocol>"],
+        "features": []
+    }'
+ Пояснения к команде
+domain.com — доменное имя сервера c DCImanager 6
+
+<token> — токен авторизации
+
+<device> — тип устройства. Возможные значения:
+
+switch — коммутатор;
+pdu — PDU;
+vpu — VPU
+<internal_handler_name> — уникальное внутреннее имя обработчика
+
+<handler_name> — имя обработчика для отображения в интерфейсе платформы
+
+<handler_protocol> — протокол для работы с обработчиком. Например, snmp
+
+Ответ будет содержать id созданного разработчика. Сохраните это значение.
+
+Пример ответа
+
+{"id": 1}
+Загрузите архив с обработчиком в платформу: 
+
+curl -o- -k https://domain.com/api/eservice/v3/custom_equipment/<handler_id>/content \
+    -H "isp-box-instance: true" \
+    -H "x-xsrf-token: <token>" \
+    -F "data=@custom_handler.tar.gz" \
+    -F "handler_import=<import_path>"
+ Пояснения к команде
+domain.com — доменное имя сервера c DCImanager 6
+
+<handler_id> — id обработчика
+
+<token> — токен авторизации
+
+custom_handler.tar.gz — имя архива с обработчиком
+
+<import_path> — относительный путь для импорта. Например, если файл обработчика my_handler.py находится в директории handler_dir, то относительный путь будет handler_dir.my_handler
+
+
+Обратите внимание!
+
+Вы также можете использовать эту команду для загрузки новых версий обработчика в платформу.
