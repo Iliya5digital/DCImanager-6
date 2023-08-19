@@ -1,0 +1,83 @@
+Для объединения адресных пространств DCImanager и VMmanager используется модуль "Интеграция с IPmanager 6". Модуль объединяет записи о физических сетях, пулах и блоках IP-адресов, но не переносит информацию о связи IP-адресов с выделенными серверами и виртуальными машинами (ВМ). В статье описано как перенести информацию об IP-адресах в платформу, исполняющую роль мастера при интеграции. 
+
+
+Обратите внимание!
+
+Перенос IP-адресов должен выполняться в "чистую" платформу — без созданных ВМ и добавленных серверов.
+
+
+В связи с поэтапным переходом платформы на использование СУБД PostgreSQL, разные экземпляры VMmanager могут использовать разные СУБД:
+
+VMmanager Hosting — MySQL;
+VMmanager Infrastructure:
+для новых установок на ОС Astra Linux, начиная с версии VMmanager 2023.06.1 — PostgreSQL;
+в остальных случаях — MySQL.
+Чтобы определить тип СУБД, выполните на сервере с платформой команду: 
+
+docker ps --filter name=pgsql
+Пример ответа
+
+CONTAINER ID   IMAGE         COMMAND                  CREATED      STATUS      PORTS      NAMES
+3213c5dc94d0   postgres:12   "docker-entrypoint.s…"   5 days ago   Up 4 days   5432/tcp   pgsql
+Если вывод команды содержит информацию о контейнере, платформа использует PostgreSQL, если ответ пустой — MySQL.
+
+Чтобы перенести информацию об IP-адресах:
+
+Установите и настройте модуль "Интеграция с IPmanager 6" по инструкции из документации VMmanager или DCImanager.
+
+На исходном сервере:
+Подключитесь к серверу по SSH.
+Создайте дамп базы данных: 
+
+MySQL
+
+docker exec -it mysql bash -c "mysqldump <database> -p\$MYSQL_ROOT_PASSWORD ip ipnet ippool ippool_range userspace >/root/ipmgr.sql"
+PostgreSQL
+
+docker exec -it pgsql bash -c "pg_dump -t ip -t ipnet -t ippool -t ippool_range -t userspace <database> /root/ipmgr.sql"
+ Пояснения к команде
+<database> — имя базы данных, зависящее от типа платформы:
+
+VMmanager — isp
+DCImanager — dci_1
+Скопируйте файл дампа в директорию /root: 
+
+docker cp mysql:/root/ipmgr.sql /root/
+Скопируйте файл дампа /root/ipmgr.sql на сервер с мастером в директорию /root/.
+
+На сервере с мастером:
+Подключитесь к серверу по SSH.
+Импортируйте данные из файла дампа: 
+
+docker cp /root/ipmgr.sql mysql:/root/
+MySQL
+
+docker exec -it mysql bash -c "mysql <database> -p\$MYSQL_ROOT_PASSWORD"
+PostgreSQL
+
+docker exec -it pgsql bash -c "psql <database> <  /root/ipmgr.sql"
+ Пояснения к команде
+<database> — имя базы данных, зависящее от типа платформы:
+
+VMmanager — isp
+DCImanager — dci_1
+source /root/ipmgr.sql;
+Чтобы IP-адреса, сети и пулы корректно отображались в интерфейсах обеих платформ, переместите их в публичное адресное пространство:
+
+Определите id публичного пространства: 
+
+select id from userspace where is_public=1;
+Пример ответа
+
++----+
+| id |
++----+
+|  1 |
++----+
+Переместите объекты в публичное пространство:
+
+update ip set userspace=<public_id>;
+update ippool set userspace=<public_id>;
+update ipnet set userspace=<public_id>;
+ Пояснения к команде
+<public_id> — id публичного адресного пространства
