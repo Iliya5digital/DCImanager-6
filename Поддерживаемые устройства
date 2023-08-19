@@ -1,0 +1,835 @@
+DCImanager 6 поддерживает управление следующими типами оборудования:
+
+серверы;
+коммутаторы;
+распределители питания (PDU);
+источники бесперебойного питания (ИБП);
+BMC;
+Intel AMT.
+Для работы с оборудованием DCImanager 6 использует специальные модули — обработчики устройств. В статье приведена информация о доступных обработчиках и их совместимости с конкретными моделями оборудования.
+
+
+Обратите внимание!
+
+Перечисленные ниже обработчики могут работать некорректно с некоторыми устройствами. Работа платформы протестирована на оборудовании из столбца Проверено на устройствах. Это оборудование подходит для подключения к платформе, но некоторые из функций устройства могут не поддерживаться.
+В списках устройств указано только оборудование, с которым работа платформы была протестирована. Полный перечень поддерживаемых устройств не ограничивается оборудованием из списков.
+СерверыLink to Серверы
+Для управления серверами платформа не использует специальные обработчики.
+
+Модели материнских плат
+Работа DCImanager 6 протестирована на серверах со следующими материнскими платами: 
+ Список материнских плат
+Acer Larne
+
+ASRock A320M-HDV R4.0
+
+ASRock B360M Pro4
+
+ASRock B450 Gaming K4
+
+ASRock B450M Pro4
+
+ASRock B550M Pro4
+
+ASRock H370M Pro4
+
+ASRock Q370M vPro
+
+ASRock X570 Phantom Gaming 4
+
+ASRock X570 Phantom Gaming 4S
+
+ASRock Z270M-ITX/ac
+
+ASRock Z370M Pro4
+
+ASRock Z390M Pro4
+
+ASRock Z490 Pro4
+
+ASRock Z490M Pro4
+
+ASRock Z590M Phantom Gaming 4
+
+ASRock Z590M Pro4
+
+ASRockRack E3C246D4I-NL
+
+ASRockRack E3C252D4U
+
+ASRockRack E3C256D4ID-NL
+
+ASRockRack ROMED8HM3
+
+ASRockRack TRX40D8-2N2T
+
+ASRockRack X470D4U
+
+ASRockRack X570D4U
+
+ASRockRack X570D4U-2L2T
+
+ASRockRack Z490D4U-2L2T
+
+ASUS Z8NR-D12
+
+ASUSTeK COMPUTER INC. B150M-A/M.2
+
+ASUSTeK COMPUTER INC. KRPA-U16 Series
+
+ASUSTeK COMPUTER INC. P9D-M Series
+
+ASUSTeK COMPUTER INC. PRIME B360M-A
+
+ASUSTeK COMPUTER INC. PRIME B450M-A
+
+ASUSTeK COMPUTER INC. PRIME B460M-A
+
+ASUSTeK COMPUTER INC. PRIME B550M-A (WI-FI)
+
+ASUSTeK COMPUTER INC. PRIME B550M-K
+
+ASUSTeK COMPUTER INC. PRIME H310M-R R2.0
+
+ASUSTeK COMPUTER INC. PRIME H570-PLUS
+
+ASUSTeK COMPUTER INC. PRIME Q370M-C
+
+ASUSTeK COMPUTER INC. PRIME Z390M-PLUS
+
+ASUSTeK COMPUTER INC. PRIME Z490-P
+
+ASUSTeK COMPUTER INC. PRIME Z490M-PLUS
+
+ASUSTeK COMPUTER INC. PRO Q470M-C
+
+ASUSTeK COMPUTER INC. Pro Q570M-C
+
+ASUSTeK COMPUTER INC. Q170M-C
+
+ASUSTeK COMPUTER INC. ROG STRIX B360-G GAMING
+
+ASUSTeK COMPUTER INC. ROG STRIX H470-I GAMING
+
+ASUSTeK COMPUTER INC. ROG STRIX Z490-G GAMING
+
+ASUSTeK COMPUTER INC. ROG STRIX Z490-H GAMING
+
+ASUSTeK COMPUTER INC. ROG STRIX Z490-I GAMING
+
+ASUSTeK COMPUTER INC. TUF B360M-E GAMING
+
+ASUSTeK COMPUTER INC. TUF B450M-PLUS GAMING
+
+ASUSTeK COMPUTER INC. TUF B450M-PRO GAMING
+
+ASUSTeK COMPUTER INC. TUF GAMING B550M-PLUS
+
+ASUSTeK COMPUTER INC. TUF GAMING H470-PRO
+
+ASUSTeK COMPUTER INC. Z10PA-D8 Series
+
+ASUSTeK COMPUTER INC. Z170I PRO GAMING
+
+ASUSTeK COMPUTER INC. Z170M-E D3
+
+ASUSTeK COMPUTER INC. Z170M-PLUS
+
+ASUSTeK Computer INC. Z8NR-D12
+
+ASUSTeK COMPUTER INC. Z9PE-D16 Series
+
+Cisco Systems Inc R200-1120402W
+
+Cisco Systems Inc UCSB-B200-M3
+
+Cisco Systems Inc UCSB-B200-M4
+
+Cisco Systems Inc UCSC-C220-M3L
+
+Cisco Systems Inc UCSC-C220-M3S
+
+Dell Inc. 01V648
+
+Dell Inc. 01W23F
+
+Dell Inc. 02C2CP
+
+Dell Inc. 02Y41P
+
+Dell Inc. 03C9JJ
+
+Dell Inc. 03X6X0
+
+Dell Inc. 04F3CJ
+
+Dell Inc. 04VJW2
+
+Dell Inc. 0599V5
+
+Dell Inc. 072XWF
+
+Dell Inc. 07NDJ2
+
+Dell Inc. 081N4V
+
+Dell Inc. 086HF8
+
+Dell Inc. 08GXHX
+
+Dell Inc. 093MW8
+
+Dell Inc. 0CN7CM
+
+Dell Inc. 0CN7X8
+
+Dell Inc. 0CNCJW
+
+Dell Inc. 0DY523
+
+Dell Inc. 0F0XJ6
+
+Dell Inc. 0GK70M
+
+Dell Inc. 0H28RR
+
+Dell Inc. 0JXJPT Not Specified
+
+Dell Inc. 0K29HN
+
+Dell Inc. 0K399H
+
+Dell Inc. 0KCKR5
+
+Dell Inc. 0KFFK8
+
+Dell Inc. 0KM5PX
+
+Dell Inc. 0M877N
+
+Dell Inc. 0MD99X
+
+Dell Inc. 0MFWGC
+
+Dell Inc. 0MFXTY
+
+Dell Inc. 0MTWDR
+
+Dell Inc. 0N051F
+
+Dell Inc. 0N582M
+
+Dell Inc. 0N83VF
+
+Dell Inc. 0NJVT7
+
+Dell Inc. 0PHY8D Not Specified
+
+Dell Inc. 0PJPW3
+
+Dell Inc. 0PXXHP
+
+Dell Inc. 0R5KP9
+
+Dell Inc. 0T0WRN
+
+Dell Inc. 0T36VK
+
+Dell Inc. 0V56FN
+
+Dell Inc. 0VHRN7
+
+Dell Inc. 0VV3F2
+
+Dell Inc. 0W6W6G
+
+Dell Inc. 0WCJNT
+
+Dell Inc. 0WTH3T
+
+Dell Inc. 0X3D66
+
+Dell Inc. 0YWR73
+
+ETegro Technologies ETRS230G3
+
+ETegro Technologies ETRS370G4
+
+FUJITSU D3034-A1
+
+FUJITSU D3233-A1
+
+FUJITSU D3279-H1
+
+GAGAR>N Tioga Pass E7278-U
+
+Gigabyte Technology Co., Ltd. A520M DS3H
+
+Gigabyte Technology Co., Ltd. B365M DS3H
+
+Gigabyte Technology Co., Ltd. B365M H
+
+Gigabyte Technology Co., Ltd. B450 AORUS M
+
+Gigabyte Technology Co., Ltd. B450 GAMING X
+
+Gigabyte Technology Co., Ltd. B560M DS3H V2
+
+Gigabyte Technology Co., Ltd. H110-D3A-CF
+
+Gigabyte Technology Co., Ltd. H310M S2H
+
+Gigabyte Technology Co., Ltd. H310M S2H 2.0
+
+Gigabyte Technology Co., Ltd. H310M S2V
+
+Gigabyte Technology Co., Ltd. H510M H
+
+Gigabyte Technology Co., Ltd. P67A-D3-B3
+
+Gigabyte Technology Co., Ltd. Q270M-D3H
+
+Gigabyte Technology Co., Ltd. Q370M D3H GSM PLUS
+
+Gigabyte Technology Co., Ltd. X570 AORUS PRO
+
+Gigabyte Technology Co., Ltd. Z390M GAMING-CF
+
+Gigabyte Technology Co., Ltd. Z490M GAMING X
+
+HP BL460 Gen10
+
+HP ProLiant DL360 Gen9
+
+HP ProLiant DL380 Gen9
+
+HPE ProLiant DL20 Gen10
+
+HPE ProLiant DL360 Gen10
+
+HPE ProLiant DL380
+
+HPE ProLiant DL385 Gen10
+
+HUANANZHI X99 F8D
+
+HUANANZHI X99-8M
+
+HUANANZHI X99-8M GAMING
+
+HUANANZHI X99-8M-F
+
+HUANANZHI X99-BD4
+
+HUANANZHI X99-F8D
+
+HUANANZHI X99-T8D
+
+HUANANZHI X99-TF
+
+HUANANZHI X99-TF GAMING
+
+Huawei BC11HGSC0
+
+IBM 69Y5698
+
+Intel Corporation 440BX Desktop Reference Platform
+
+Intel Corporation D915GAV
+
+Intel Corporation S2600CW
+
+Intel Corporation S5500WBV
+
+Intel Corporation S5520UR
+
+MACHINIST X99-K9
+
+MACHINIST X99-RS9
+
+Micro-Star International Co., Ltd. B360M PRO-VDH (MS-7B24)
+
+Micro-Star International Co., Ltd. B365M PRO-VDH(MS-7C39)
+
+Micro-Star International Co., Ltd. MAG Z390M MORTAR (MS-7C00)
+
+MSI B250M PRO-VDH (MS-7A70)
+
+MSI Z270-A PRO (MS-7A71)
+
+MSI Z77A-G45 (MS-7752)
+
+QIYIDA X99-H9
+
+Sugon X9DR3-F
+
+Supermicro H11SSL-i
+
+Supermicro H12SSL-NT
+
+Supermicro H12SSW-iN
+
+Supermicro H12SSW-iNR
+
+Supermicro H12SSW-NT
+
+Supermicro H12SSW-NTR
+
+Supermicro H8DGU
+
+Supermicro PDSMU
+
+Supermicro X10DDW-i
+
+Supermicro X10DRD-L
+
+Supermicro X10DRI-1U-UC014
+
+Supermicro X10DRL-i
+
+Supermicro X10DRU-i
+
+Supermicro X10DRW-E
+
+Supermicro X10DRW-i
+
+Supermicro X10DRW-iT
+
+Supermicro X10SLE
+
+Supermicro X10SLL-F
+
+Supermicro X10SLM-F
+
+Supermicro X10SRL-F
+
+Supermicro X10SRW-F
+
+Supermicro X11DDW-L
+
+Supermicro X11DDW-NT
+
+Supermicro X11DPL-i
+
+Supermicro X11DPU-LC019
+
+Supermicro X11SCD-F
+
+Supermicro X11SCE-F
+
+Supermicro X11SCH-F
+
+Supermicro X11SCH-LN4F
+
+Supermicro X11SCL-F
+
+Supermicro X11SCL-IF
+
+Supermicro X11SCM-F
+
+Supermicro X11SCW-F
+
+Supermicro X11SCZ-F
+
+Supermicro X11SCZ-Q
+
+Supermicro X11SPM-F
+
+Supermicro X11SPW-TF
+
+Supermicro X11SRM-VF
+
+Supermicro X11SSD-F
+
+Supermicro X11SSH-F
+
+Supermicro X11SSL-F
+
+Supermicro X11SSM-F
+
+Supermicro X11SSW-F
+
+Supermicro X12DPL-i6
+
+Supermicro X12SCZ-F
+
+Supermicro X12SCZ-QF
+
+Supermicro X12SCZ-TLN4F
+
+Supermicro X12SPO-F
+
+Supermicro X7DBR-3
+
+Supermicro X7DBU
+
+Supermicro X8DT3
+
+Supermicro X8DT6
+
+Supermicro X8DTL
+
+Supermicro X8DTT
+
+Supermicro X8DTT-H
+
+Supermicro X8DTU
+
+Supermicro X8DTU-LN4
+
+Supermicro X9DR3-F
+
+Supermicro X9DRD-7LN4F
+
+Supermicro X9DRD-C/i(N)T
+
+Supermicro X9DRD-iF
+
+Supermicro X9DRi-LN4 /X9DR3-LN4
+
+Supermicro X9DRL-3F/iF
+
+Supermicro X9DRL-7F
+
+Supermicro X9DRW
+
+Supermicro X9DRW-3LN4F /X9DRW-3TF
+
+Supermicro X9DRW-7/iTPF
+
+Supermicro X9SCE
+
+Supermicro X9SRH-7F/7TF
+
+Supermicro X9SRW-F
+
+Wistron Corporation ProLiant DL120 G5
+
+Модели серверов
+Работа DCImanager 6 протестирована на следующих моделях серверов:
+
+ Список серверов
+Aquarius T50 D110CF
+
+HP BL460c Gen9
+
+HP DL360 Gen9
+
+HP DL380 Gen9
+
+Lenovo TS SR630
+
+OpenYard RS101I (1U)
+
+OpenYard RS201I (2U)
+
+КоммутаторыLink to Коммутаторы
+Работа DCImanager 6 протестирована на коммутаторах: 
+
+ Список коммутаторов
+Allied Telesis router/switch, AW+ v5.4.7-2.3
+
+Arista Networks DCS-7050S-52
+
+Arista Networks DCS-7050S-64
+
+Arista Networks DCS-7050SX-64
+
+Arista Networks DCS-7060CX-32S
+
+Brocade Communications Systems, Inc. FGS648P
+
+Brocade Communications Systems, Inc. FGS648P-POE
+
+Cisco C2350
+
+Cisco C2960
+
+Cisco C2960L
+
+Cisco C2960S
+
+Cisco C2960X
+
+Cisco C3560
+
+Cisco C3560E
+
+Cisco C3750
+
+Cisco C3750E
+
+Cisco CAT3K_CAA
+
+Cisco cat4500
+
+Cisco cat4500e
+
+Cisco CBS250-24T-4G 24-Port Gigabit Smart Switch
+
+Cisco CBS31X0
+
+Cisco n3000
+
+Cisco n5000
+
+Cisco Nexus 3048
+
+Cisco Nexus7000 C7010
+
+Cisco NX-OS(tm) nxos.7.0.3.I4.5.bin
+
+Cisco NX-OS(tm) nxos.7.0.3.I6.1.bin
+
+Cisco NX-OS(tm) nxos.7.0.3.I7.2.bin
+
+Cisco NX-OS(tm) nxos.7.0.3.I7.3.bin
+
+Cisco NX-OS(tm) nxos.7.0.3.I7.8.bin
+
+Cisco NX-OS(tm) nxos.9.3.6.bin
+
+Cisco NX-OS(tm) nxos.9.3.7.bin
+
+Cisco NX-OS(tm) nxos.9.3.7a.bin
+
+Cisco NX-OS(tm) nxos.9.3.8.bin
+
+D-Link DGS-1210-28 3.01.003
+
+D-Link DGS-1210-28 3.12.B056
+
+D-Link DGS-1210-28/C1 4.10.004
+
+D-Link DGS-1210-28/ME/A1
+
+D-Link DGS-1210-28/ME/A2
+
+D-Link DGS-1210-52/ME 4.00.R033
+
+D-Link DGS-1500-28 2.51.005
+
+D-Link DGS-1510-28 Gigabit Ethernet SmartPro Switch
+
+D-Link DGS-1510-28X Gigabit Ethernet SmartPro Switch
+
+D-Link DGS-1510-28X/ME Gigabit Ethernet Switch
+
+D-Link DGS-3100-24 Gigabit stackable L2 Managed Switch
+
+DCN S5750E-52P-SI Device
+
+DCN S5750E-52X-SI Device
+
+Dell Force10 S60
+
+Dell Networking S4820T
+
+DELL PowerConnect 6248
+
+DELL PowerConnect M6220
+
+Eltex EX3300-24T
+
+Eltex EX3300-24T 15.1R6.7
+
+Eltex EX3300-48T
+
+Eltex EX3300-48T-BF 15.1R6.7
+
+Eltex EX3400-48T 18.2R3-S8.5
+
+Eltex EX4200-48P 15.1R7.8
+
+Eltex EX4200-48T
+
+Eltex EX4200-48T 15.1R7-S10
+
+Eltex EX4200-48T 15.1R7-S5.1
+
+Eltex EX4200-48T 15.1R7-S6.3
+
+Eltex EX4200-48T 15.1R7-S9
+
+Eltex EX4200-48T 15.1R7.8
+
+Eltex EX4300-48MP 18.2R2.6
+
+Eltex EX4300-48T 15.1R7.8
+
+Eltex EX4300-48T 17.2R1.13
+
+Eltex EX4300-48T 18.4R2-S7.4
+
+Eltex EX4300-48T 20.4R1.12
+
+Eltex EX4300-48T 21.1R1.11
+
+Eltex MES2324B
+
+HP J9147A 2910al-48G Switch
+
+HP J9728A 2920-48G Switch
+
+HPE 5900AF-48G-4XG-2QSFP
+
+HPE 5900AF-48XG-4QSFP
+
+HPE OfficeConnect 1950-12X
+
+HPE OfficeConnect Switch 1820
+
+HPE ProCurve J9280A
+
+Huawei S5735-L48T4X-A
+
+Juniper EX4200-48p
+
+Juniper QFX5100-48T-6Q
+
+Juniper SRX550
+
+Mellanox 4120FD
+
+Mellanox SX1024
+
+Mikrotik RouterOS CRS317-1G-16S
+
+Mikrotik RouterOS CRS354-48G-4S+2Q
+
+Tioga Pass E7278-U
+
+Ubiquiti EdgeSwitch 16 XG
+
+Ubiquiti EdgeSwitch 48 Lite
+
+Zyxel GS3700-24
+
+Обратите внимание!
+
+Если для коммутатора с управлением по SNMP нет специального обработчика, проверьте его функционирование с обработчиком Common (SNMP). Если устройство некорректно функционирует с этим обработчиком, вы можете передать пожелания о поддержке вашего оборудования через личный кабинет ISPsystemили сервис features.ispsystem.com.
+
+
+Common (SNMP)	Brocade FGS648P-POE
+Brocade FGS648P
+Cisco Catalyst WS-C3560E-24TD (SW Version: 12.2(58)SE1)
+Cisco Catalyst 2960
+Cisco CBS250-24T-4G
+Cisco C2350
+Cisco C2960
+Cisco C2960S
+Cisco C3560
+Cisco C3560E
+Cisco C3750
+Cisco CBS31X0
+Eltex MES2324B	Подходит для работы с большинством коммутаторов, поддерживающих управление по SNMP. Рекомендуем использовать, если для коммутатора нет специального обработчика.	SNMPv1/v2c/v3
+Arista (eAPI)	Arista DCS-7010T-48-R (Software image version: 4.21.10M-INT)	Подходит для работы с некоторыми коммутаторами Arista. Для подключения нужно включить eAPI в настройках коммутатора.	eAPI
+Brocade FCX beta (SNMP)	—	Подходит для работы с некоторыми коммутаторами Brocade серии FCX.	SNMPv1/v2c/v3
+Cisco Catalyst (SNMP)	Cisco Catalyst WS-C3560E-24TD (SW Version: 12.2(58)SE1)
+Cisco Catalyst WS-C3850-24T
+Cisco Catalyst WS-C2960L-24TS-LL
+Cisco Catalyst 2960
+Cisco CBS250-24T-4G
+Cisco C2350
+Cisco C2960
+Cisco C2960S
+Cisco C3560
+Cisco C3560E
+Cisco C3750
+Cisco CBS31X0	Подходит для работы с некоторыми коммутаторами Cisco под управлением Catalyst OS.	SNMPv1/v2c/v3
+Cisco Catalyst 45xx (SNMP)	Cisco Catalyst WS-C4948E-S	Подходит для работы с некоторыми коммутаторами Cisco Catalyst 45xx и Cisco Catalyst 49xx.	SNMPv1/v2c/v3
+Cisco Nexus (NX-API) 	Cisco Nexus 5000 Switch (System version: 7.1(1)N1(1))	Подходит для работы с некоторыми коммутаторами Cisco серии Nexus. Большинство операций выполняется через NxAPI. В настройках коммутатора нужно включить доступ по NxAPI.	NxAPI
+Cisco Small Business beta (SNMP)	—	Подходит для работы с некоторыми коммутаторами Cisco из семейства Small Business.	SNMPv1/v2c/v3
+D-Link (SNMP)	D-Link DGS-3100-24
+D-Link DGS-3120-24
+D-Link DGS-1210-28
+D-Link DGS-1210-28/ME/A2	Подходит для работы с некоторыми коммутаторами D-Link.	SNMPv1/v2c/v3
+D-Link 3200B beta (SNMP)	
+—
+
+Подходит для работы с некоторыми коммутаторами D-Link 3200B.	SNMPv1/v2c/v3
+D-Link 3200C  beta (SNMP)	
+—
+
+Подходит для работы с некоторыми коммутаторами D-Link 3200C.	SNMPv1/v2c/v3
+Dell (SNMP)	Dell Force-10 (Series: s60)
+Dell PowerConnect 5548	Подходит для работы с некоторыми коммутаторами Dell.	SNMPv1/v2c/v3
+Eltex MES2XXX beta (SNMP)	—	Подходит для работы с некоторыми коммутаторами Eltex с версией ПО MES2000.	SNMPv1/v2c/v3
+Eltex MES5XXX beta (SNMP)	—	Подходит для работы с некоторыми коммутаторами Eltex с версией ПО MES5000.	SNMPv1/v2c/v3
+HP (SNMP)	HP ProCurve 2510G-48
+HP 2910al-48G
+HP 2920-48G
+HP J9728A 2920-48G	Подходит для работы с некоторыми коммутаторами HP.	SNMPv1/v2c/v3
+Huawei (SNMP)	Huawei S5735-L48T4X-A	Подходит для работы с некоторыми коммутаторами Huawei.	SNMPv1/v2c/v3
+Juniper (NetConf)
+Juniper EX2200-48T-4G (Junos: 15.1R6.7)	Подходит для работы с некоторыми коммутаторами Juniper.	NetConf, SSH
+Juniper ELS (NetConf)	Juniper EX4300-48P (Junos: 18.4R2.7)
+Juniper EX3400-48T (Junos: 15.1X53-D591.1)
+Juniper EX4300-48MP (Junos: 18.2R2.6)	Подходит для работы с некоторыми коммутаторами Juniper с поддержкой ELS.	NetConf, SSH
+Juniper Junos 12 (NetConf)	Juniper EX4200-48PX (Junos: 12.3R12-S12)	Подходит для работы с некоторыми коммутаторами Juniper с ОС Junos 12.X.	NetConf, SSH
+MikroTik (RouterOS API)	Mikrotik CRS3XX
+Mikrotik CRS317-1G-16S	Подходит для работы с некоторыми коммутаторами Mikrotik CRS3XX.	RouterOS API
+Zyxel GS2200 beta (SNMP)	
+—
+
+Подходит для работы с некоторыми коммутаторами Zyxel серии GS2200.	SNMPv1/v2c
+Zyxel XGS L3 Switch beta (SNMP)	—	Подходит для работы с некоторыми коммутаторами Zyxel серии XGS.	SNMPv1/v2c
+PDULink to PDU
+APC PDU (SNMP)	APC AP7822
+APC AP7920
+APC AP7921
+APC AP7922
+APC AP7941
+APC AP7950
+APC AP7951
+APC AP7952
+APC AP7953
+APC AP8453
+APC AP8653
+APC AP8865
+APC AP8941
+APC AP8953
+APC AP8959
+APC AP8959EU3
+APC AP8981
+APC APDU9941	Подходит для работы с некоторыми распределителями питания APC.	SNMPv1/v2c/v3
+Aten PDU (SNMP)	Aten PE8324G	Подходит для работы с некоторыми распределителями питания Aten.	SNMPv1/v2c/v3
+ATS PDU (SNMP)	PDU15SWHVIEC12ATNET	Подходит для работы с некоторыми распределителями питания ATS.	SNMPv1/v2c/v3
+C3 Solutions PDU (SNMP)	—	Подходит для работы с некоторыми распределителями питания C3 Solutions.	SNMPv1/v2c/v3
+RPCM PDU (SNMP)	RPCM 1502 (Software version: 0.9.34)	Подходит для работы с некоторыми распределителями питания RPCM.	SNMPv1/v2c/v3
+ИБПLink to ИБП
+Emerson Liebert NX (SNMP)	Подходит для работы с некоторыми ИБП Emerson Liebert.	SNMPv1/v2c/v3
+APC UPS beta (SNMP)	Подходит для работы с некоторыми ИБП APC.	SNMPv1/v2c/v3
+BMCLink to BMC
+IPMI v1.5/v2	Подходит для работы с устройствами BMC, которые используют протокол IPMI v1.5/v2.0.	IPMI v1.5/v2.0
+IPMI v2 (lanplus)	Подходит для работы с устройствами BMC, которые используют протокол IPMI v2.0 (lanplus).	IPMI v2.0 (lanplus)
+Redfish	
+Подходит для работы через протокол Redfish на серверах:
+
+Delta Solutions (протестировано на DSTPS2S167);
+GAGAR>N (протестировано на Tioga Pass E7278-U);
+HP, HPE (протестировано на HPE ProLiant DL380, HP BL460 Gen10, HP Gen9);
+Lenovo (протестировано на ThinkSystem SR630);
+VEGMAN.
+Redfish
+Подключение к веб-интерфейсу BMC поддерживается для большинства производителей оборудования, к консоли BMC — для оборудования:
+
+Aquarius;
+ASRockRack;
+Asus;
+Cisco;
+Dell iDRAC 6;
+Dell iDRAC 8;
+Dell iDRAC 9;
+GAGAR>N;
+HP Gen8;
+HP iLO3;
+HP iLO4;
+HP iLO5;
+Intel BMC;
+Supermicro;
+Supermicro X8;
+Supermicro X9;
+Supermicro X11.
+Intel AMTLink to Intel AMT
+Intel AMT	Подходит для работы с устройствами Intel AMT, которые используют протокол WS-Management (WS-Man).	WS-Management
