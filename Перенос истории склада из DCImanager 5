@@ -1,0 +1,173 @@
+Вы можете перенести из DCImanager 5 историю поставок и перемещений оборудования на складе. История будет доступна для просмотра в системе мониторинга Grafana.
+
+Этапы переноса:
+
+Подготовка данных.
+Импорт таблиц из БД DCImanager 5 в БД DCImanager 6.
+Создание дашборда в Grafana с источником в виде БД DCImanager 6.
+Подготовка данныхLink to Подготовка данных
+Подключитесь к серверу с DCImanager 5 по SSH.
+Откройте консоль MySQL: 
+
+mysql dcimgr
+Скопируйте содержимое таблицы history_ispare в новую таблицу history_ispare_imported: 
+
+CREATE TABLE history_ispare_imported LIKE history_ispare;
+INSERT INTO history_ispare_imported SELECT * FROM history_ispare;
+Добавьте в таблицу history_ispare_imported столбцы barcode, name, idelivery_name, placement_new_s, placement_s: 
+
+ALTER TABLE history_ispare_imported ADD COLUMN barcode VARCHAR(255), ADD COLUMN name VARCHAR(255), ADD COLUMN idelivery_name VARCHAR(255), ADD COLUMN placement_new_s VARCHAR(16), ADD COLUMN placement_s VARCHAR(16);
+Заполните столбцы barcode, name, idelivery_name значениями из других таблиц: 
+
+UPDATE history_ispare_imported as h LEFT JOIN ispare AS s ON s.id = h.reference LEFT JOIN idelivery AS d ON d.id = s.idelivery SET h.barcode = s.barcode, h.name = s.name, h.idelivery_name = d.name;
+Заполните новые столбцы placement_new_s и placement_s расшифровками значений из столбцов placement_new и placement: 
+
+UPDATE history_ispare_imported SET
+  placement_new_s = CASE
+  WHEN placement_new = 0 THEN 'in_warehouse'
+  WHEN placement_new = 1 THEN 'in_server'
+  WHEN placement_new = 2 THEN 'in_equipment'
+  WHEN placement_new = 3 THEN 'written_off'
+  WHEN placement_new = 4 THEN 'broken'
+  WHEN placement_new = 5 THEN 'under_repair'
+  WHEN placement_new = 6 THEN 'bad_input'
+  WHEN placement_new = 7 THEN 'reserved'
+  WHEN placement_new = 8 THEN 'in_delivery'
+  WHEN placement_new = 9 THEN 'in_rack'
+  ELSE ''
+  END,
+  placement_s = CASE
+  WHEN placement = 0 THEN 'in_warehouse'
+  WHEN placement = 1 THEN 'in_server'
+  WHEN placement = 2 THEN 'in_equipment'
+  WHEN placement = 3 THEN 'written_off'
+  WHEN placement = 4 THEN 'broken'
+  WHEN placement = 5 THEN 'under_repair'
+  WHEN placement = 6 THEN 'bad_input'
+  WHEN placement = 7 THEN 'reserved'
+  WHEN placement = 8 THEN 'in_delivery'
+  WHEN placement = 9 THEN 'in_rack'
+  ELSE ''
+  END;
+Скопируйте содержимое таблицы history_server в новую таблицу history_servers_imported: 
+
+CREATE TABLE history_servers_imported LIKE history_servers;
+INSERT INTO history_servers_imported SELECT * FROM history_servers;
+Заполните столбец server_name в таблице history_servers_imported значениями из других таблиц: 
+
+UPDATE history_servers_imported as h LEFT JOIN servers AS s ON h.reference = s.id SET h.server_name = s.name;
+Выйдите из консоли MySQL: 
+
+exit
+Сохраните дамп новых таблиц: 
+
+mysqldump dcimgr history_ispare_imported history_servers_imported > imported_history.txt
+Заархивируйте файл дампа: 
+
+tar cfz imported_history.txt.tgz imported_history.txt
+Скопируйте архив на сервер с DCImanager 6: 
+
+scp imported_history.txt.tgz root@<domain>:
+ Пояснения к команде
+<domain> — доменное имя или IP-адрес сервера с DCImanager 6
+
+Импорт данныхLink to Импорт данных
+Подключитесь к серверу с DCImanager 6 по SSH.
+Разархивируйте файл дампа: 
+
+tar xfz imported_history.txt.tgz
+Создайте БД dci5_imported: 
+
+docker exec mysql mysql -u root -p`docker exec mysql printenv MYSQL_ROOT_PASSWORD` -e'CREATE DATABASE dci5_imported'
+Импортируйте таблицы из дампа в БД dci5_imported: 
+
+docker exec -i mysql mysql -u root -p`docker exec mysql printenv MYSQL_ROOT_PASSWORD` dci5_imported < imported_history.txt
+Отройте БД dci5_imported в консоли MySQL: 
+
+docker exec -it mysql mysql -u root -p`docker exec mysql printenv MYSQL_ROOT_PASSWORD` dci5_imported
+Создайте пользователя dci5_hist_viewer с правами на просмотр импортируемых данных: 
+
+CREATE USER 'dci5_hist_viewer'@'%' IDENTIFIED BY '<some_pass>';
+ Пояснения к команде
+GRANT SELECT on dci5_imported.* TO 'dci5_hist_viewer'@'%';
+Выйдите из консоли MySQL: 
+
+exit
+Проверьте импорт данных и права пользователя: 
+
+docker exec -it mysql mysql -u dci5_hist_viewer -p<some_pass> dci5_imported
+ Пояснения к команде
+<some_pass> — пароль пользователя
+
+SELECT * FROM history_ispare_imported LIMIT 10 \G; 
+exit
+Настройка GrafanaLink to Настройка Grafana
+Подключитесь к серверу с DCImanager 6 по SSH.
+Перейдите в докер-контейнер с Grafana: 
+
+docker exec -it dci_grafana_1 bash
+Перейдите в директорию /grafana_extra_files/: 
+
+cd /grafana_extra_files
+В файле dci5_history_datasource.yml укажите настройки пользователя для подключения к БД:
+user — dci5_hist_viewer.
+password — пароль пользователя dci5_hist_viewer. 
+
+Пример файла
+
+apiVersion: 1
+
+datasources:
+  - name: dci5_hist
+    type: mysql
+    url: mysql:3306
+    user: dci5_hist_viewer
+    jsonData:
+      database: dci5_imported
+      maxOpenConns: 100 # Grafana v5.4+
+      maxIdleConns: 100 # Grafana v5.4+
+      maxIdleConnsAuto: true # Grafana v9.5.1+
+      connMaxLifetime: 14400 # Grafana v5.4+
+    secureJsonData:
+      password: secret
+Скопируйте файлы дашбордов и источников данных в рабочую директорию Grafana: 
+
+cp dci5_history_datasource.yml /etc/grafana/provisioning/datasources/
+cp dci5_servers_dashboard.json /etc/grafana/dashboards_files/
+cp dci5_spares_dashboard.json /etc/grafana/dashboards_files/
+Перезапустите Grafana:
+
+supervisorctl restart grafana_server
+Проверьте добавление источника данных dci5_hist:
+
+Откройте интерфейс Grafana: в интерфейсе платформы в правом меню нажмите значок  → Grafana.
+В левом меню Grafana нажмите значок .
+Убедитесь, что в списке источников на вкладке Data sources есть dci5_hist.
+
+
+Чтобы проверить подключение к источнику:
+Нажмите на его название.
+В открывшейся форме нажмите кнопку Test. При успешном подключении появится сообщение Database Connection OK.
+Работа с даннымиLink to Работа с данными
+Импортированные данные доступны в дашбордах:
+
+dci5_ispares — история комплектующих;
+dci5_servers — история серверов.
+Чтобы открыть дашборд:
+
+Откройте интерфейс Grafana: в интерфейсе платформы в правом меню нажмите значок  → Grafana.
+Перейдите в нужный дашборд: в левом меню Grafana нажмите значок → Browse → General → выберите дашборд dci5_ispares или dci5_servers.
+
+Интерфейс дашборда
+
+Вы можете отфильтровать данные по заданному фильтру:
+barcode — штрих-код устройства;
+reference — id записи;
+name — название устройства;
+from — начальная дата временного интервала;
+till — конечная дата временного интервала.
+В полях barcode, reference и name вы можете ввести:
+
+ALL — для отображения всех устройств;
+% — для отображения непустых значений.
+Чтобы изменить SQL-запрос, по которому данные были добавлены в Grafana, нажмите на заголовок дашборда dci5 servers (dci5 spares) → Edit → введите новый запрос → в верхнем правом углу нажмите кнопку Apply.
