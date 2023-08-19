@@ -1,0 +1,87 @@
+DCImanager 6 сохраняет информацию о работе сервисов в лог-файлы. Данные из лог-файлов могут быть использованы для диагностики работы платформы. Лог-файлы хранятся в директориях /var/log докер-контейнеров.
+
+Перечень лог-файловLink to Перечень лог-файлов
+Основные лог-файлы на сервере с платформой
+Контейнер	Имя файла	Содержимое
+dci_auth_back_1	/var/log/licupdate.log 	логи проверки лицензии
+dci_back	/var/log/dci_1_writer.log
+/var/log/dci_1_reader.log	логи основного сервиса DCImanager 6
+ /var/log/dci_location_check_update.log	лог обновления контейнеров на локации. Сервис запускается при перезапуске контейнера и обновляет контейнеры на локации, если это необходимо.
+/var/log/dci_locationctl.log
+/var/log/dci_ansiblectl_location_<id локации>.log
+/var/log/ansible.log 	логи создания и настройки локации
+/var/log/dci_operationctl.log	лог выполнения операций на локации
+dci_consumer_1	/var/log/worker_daemon.log	логи периодических опросов оборудования и получения данных статистики
+dci_dns_proxy_1	/var/log/dns_proxy_integration.log
+/var/log/dns_proxy_service_1_reader.log
+/var/log/dns_proxy_service_1_writer.log	
+логи модулей:
+
+Интеграция с DNSmanager 6
+Интеграция с PowerDNS
+dci_ipmgr_1	/var/log/ip_1_reader.log
+/var/log/ip_1_writer.log	логи сервиса управления адресным пространством
+dci_ipmi_proxy_v2_client_1	/var/log/ipmi_proxy_goproxy.log	логи сервиса goproxy. Сервис передаёт данные в VNC-клиент и проксирует Websocket-запросы к VNC-серверу
+/var/log/ipmi_proxy_update_checker.log	обновление модуля проксирования BMC на локации. Сервис запускается при перезапуске контейнера и обновляет модуль, если это необходимо
+migrator	/var/log/migrate.log
+/var/log/bill_migrate.log	лог миграции объектов DCImanager 5
+Лог установки платформы сохраняется в файл /opt/ispsystem/dci/install.log.
+
+Лог-файлы операции диагностики указаны в статье Проверка работы диагностики.
+
+Логи сервиса авторизации записываются в стандартный вывод контейнера dci_auth_back4_1.
+
+Основные лог-файлы на сервере-локации
+Контейнер	Имя файла	Содержимое
+eservice_handler
+
+/var/log/dci_switch_<id>_handler.log	логи обработчиков коммутаторов
+/var/log/dci_pdu_<id>_handler.log	логи обработчиков PDU
+/var/log/dci_ipmi_<id>_handler.log	логи обработчиков BMC
+/var/log/dci_intel_amt_handler.log	логи обработчиков Intel AMT
+ Пояснения
+Работа с логамиLink to Работа с логами
+Для просмотра логов в докер-контейнере перейдите в нужный контейнер. Например, dci_back:
+
+docker exec -it dci_back sh
+Пример работы с лог-файлом:
+
+Узнать когда выполнялся опрос коммутатора
+
+cat /var/log/dci_switch_1_handler.log | grep 'Switch status start'
+Чтобы посмотреть логи сервиса авторизации, выполните команду: 
+
+docker container logs dci_auth_back4_1
+Сбор логов платформыLink to Сбор логов платформы
+Чтобы собрать все лог-файлы платформы в одной директории:
+
+Подключитесь к серверу с платформой по SSH.
+Создайте bash-скрипт logs_collect.sh следующего содержания: 
+
+#!/bin/bash
+
+rm /home/logs -fr
+
+DOCKER_CONTAINER_NAMES=`docker ps --format '{{.Names}}'`
+
+SERVICES=($DOCKER_CONTAINER_NAMES)
+cd /home
+mkdir -p logs
+cd logs
+for service in ${SERVICES[@]}
+do
+ echo -e "----\033[0;31mCopying logs from $service\033[0m----\n"
+ mkdir -p $service
+ docker cp $service:/var/log/. $service/.
+ docker logs $service > $service/${service}_stdout.log 2>&1
+done
+
+cp -r /opt/ispsystem/*/install.log install.log
+
+ARCHIVE_NAME="logs_$(date +'%Y_%m_%d_%H_%M_%S').tar.gz"
+
+tar -cvzf /home/$ARCHIVE_NAME -C /home/logs .
+Запустите скрипт:
+
+bash logs_collect.sh
+Лог-файлы будут сохранены в директорию /home/logs/, архив с логами — в директорию /home/.
