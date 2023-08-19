@@ -1,0 +1,99 @@
+Для настройки докер-контейнеров на сервере-локации платформа использует конфигурационный файл /opt/ispsystem/dci/etc/location.yaml. Для описания конфигурации используется формат Docker Compose.
+
+Вы можете изменить конфигурацию с помощью механизма патчей (модификаций). Патчи позволяют добавить в докер-контейнеры файлы, переменные окружения и дополнительные сервисы.
+
+Пример создания патчаLink to Пример создания патча
+В примере рассматривается изменение переменной окружения IMPITOOL_PATH. После выполнения этих действий в докер-контейнере eservice_handler для запуска утилиты ipmitool будет использоваться файл /usr/bin/ipmitool_1.8.19.
+
+Подключитесь к серверу-локации по SSH.
+Создайте файл патча patch.yaml следующего содержания:
+
+patch.yaml
+
+version: "3.5"
+
+services:
+  eservice_handler:
+    environment:
+      IPMITOOL_PATH: "/usr/bin/ipmitool_1.8.19"
+Закодируйте содержимое файла patch.yaml по стандарту Base64: 
+
+echo -ne "patch.yaml" | base64
+Сохраните вывод команды. 
+
+Пример вывода
+
+cGF0Y2gueWFtbA==
+Получите токен авторизации:
+curl -X POST 'https://domain.com/api/auth/v4/public/token' -d '{"email": "admin_email", "password": "admin_pass"}'
+ Пояснения к команде
+domain.com — доменное имя или IP-адрес сервера с платформой
+
+admin_email — email администратора платформы
+
+admin_pass — пароль администратора платформы
+
+В ответ придёт сообщение вида:
+
+Пример ответа в JSON
+
+{
+  "confirmed": true,
+  "id": "6",
+  "token": "4-e9726dd9-61d9-2940-add3-914851d2cb8a"
+}
+Сохраните из полученного ответа значение параметра token — токен авторизации.
+
+Выполните API-запрос: 
+
+curl -k -# -d '{"patches":[{"name":"<patch_name>","patch":"<patch_base64>"}]}' -H "Cookie: ses6=<token>" -H "x-xsrf-token: <token>" -o- "https://domain.com/dci/v3/location/<location_id>/setup"
+ Пояснения к команде
+<patch_name> — произвольное название патча. После выполнения запроса патч будет сохранён в файл /opt/ispsystem/dci/etc/<patch_name>.yml на сервере-локации
+
+<patch_base64> — содержимое патча, закодированное по стандарту Base64
+
+<token> — токен авторизации
+
+domain.com — доменное имя или IP-адрес сервера с платформой
+
+<location_id> — id локации
+
+DCImanager 6 запустит настройку локации с учётом созданного патча.
+
+Управление патчамиLink to Управление патчами
+Вы можете управлять патчами через API-запросы.
+
+Добавить патчи
+
+curl -k -# -d '{"patches":[{"name":"<patch1_name>","patch":"<patch1_base64>"},{"name":"<patch2_name>","patch":"<patch2_base64>"},{"name":"<patch3_name>","patch":"<patch3_base64>"}]}' -H "Cookie: ses6=<token>" -H "x-xsrf-token: <token>" -o- "https://domain.com/dci/v3/location/<location_id>/setup"
+
+Если к локации уже были применены патчи, укажите их в списке patches. Патчи, не указанные в списке, будут удалены с локации.
+
+Получить список используемых патчей
+
+curl -k -# -X GET -H "Cookie: ses6=<token>" -H "x-xsrf-token: <token>" -o- "https://domain.com/dci/v3/location/<location_id>"
+Вывод команды будет содержать параметр patches с данными о патчах.
+
+Удаление всех патчей
+
+curl -k -# -d '{"patches":[]}' -H "Cookie: ses6=<token>" -H "x-xsrf-token: <token>" -o- "https://domain.com/dci/v3/location/<location_id>/setup"
+ Пояснения к запросам
+<patchX_name> — произвольное название патча. После выполнения запроса патч будет сохранён в файл /opt/ispsystem/dci/etc/<patchX_name>.yml на сервере-локации
+
+<patchX_base64> — содержимое патча, закодированное по стандарту Base64
+
+<token> — токен авторизации
+
+domain.com — доменное имя или IP-адрес сервера с платформой
+
+<location_id> — id локации
+
+Управление модифицированными контейнерамиLink to Управление модифицированными контейнерами
+Для запуска и остановки модифицированных контейнеров на сервере-локации используйте скрипт /opt/ispsystem/dci/etc/location_compose.sh. Платформа формирует скрипт автоматически и включает туда информацию обо всех патчах, которые нужно запустить на локации. Если не использовать скрипт, то при перезапуске контейнеров текущие патчи удалятся. 
+
+Запуск всех сервисов
+
+/opt/ispsystem/dci/etc/location_compose.sh up -d
+Остановка всех сервисов
+
+/opt/ispsystem/dci/etc/location_compose.sh down
