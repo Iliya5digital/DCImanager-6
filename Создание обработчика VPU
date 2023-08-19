@@ -1,0 +1,224 @@
+Если вы используете Модуль VPU (VLAN Per User), вы можете создать собственный обработчик VPU. Собственный обработчик позволит гибко настроить параметры VPU в соответствии с настройками сетевого оборудования.
+
+Чтобы добавить обработчик, создайте его код и загрузите в платформу.
+
+Подготовка окруженияLink to Подготовка окружения
+Обработчик VPU должен быть написан на языке Python. Рекомендуем использовать версию Python 3.9.
+
+Вы можете создать обработчик на основе существующего проекта. Чтобы скопировать проект, подключитесь к серверу-локации DCImanager 6 по SSH и выполните команду:
+
+docker cp eservice_handler:/opt/ispsystem/equip_handler ./
+При создании обработчика могут быть полезны директории проекта:
+
+/common — общие вспомогательные классы и функции;
+/vpu_common — вспомогательные классы и функции для работы с VPU;
+/vpu_common/handlers — обработчики VPU.
+Требуемые библиотеки Python и их версии вы можете посмотреть в файле проекта requirements.txt. Чтобы установить нужные библиотеки, выполните команду:
+
+pip3 install -r requirements.txt
+Для проверки типов данных в проекте рекомендуем использовать анализатор mypy.
+
+Создание обработчикаLink to Создание обработчика
+Класс для работы с VPU
+Класс VPU наследуется от класса BaseVpu.
+
+Пример описания класса
+
+class CustomVpuHandler(BaseVpu):
+    """Custom vpu handler"""
+
+    def __init__(self, vpu_data: BaseVpuData):
+        """Init CustomVpuHandler object."""
+        BaseVpu.__init__(self, vpu_data)
+
+    def check_access(self) -> BaseReplyData:
+        """Check router access."""
+        logging.debug("custom_vpu: check_access")
+
+        return BaseReplyData("Ok", "check_access")
+
+    def tune_vpu(self) -> BaseReplyData:
+        """Tune VPU settings."""
+        logging.debug("custom_vpu: tune_vpu")
+
+        return BaseReplyData("Ok", "tune_vpu")
+
+    def create_net(self) -> BaseReplyData:
+        """Create net."""
+        logging.debug("custom_vpu: create_net")
+
+        return BaseReplyData("Ok", "create_net")
+
+    def delete_net(self) -> BaseReplyData:
+        """Delete net."""
+        logging.debug("custom_vpu: delete_net")
+
+        return BaseReplyData("Ok", "delete_net")
+Чтобы отправлять запросы в коммутатор или маршрутизатор VPU-сети через протокол netconf, выполните наследование от вспомогательного класса BaseNetconf:
+
+Пример описания класса
+
+class CustomVpuHandler(BaseNetconf, BaseVpu):
+    """Custom vpu handler"""
+
+    def __init__(self, vpu_data: BaseVpuData):
+        """Init CustomVpuHandler object."""
+        BaseNetconf.__init__(self,   vpu_data.router_info["router_info"]["netconf_params"])
+        BaseVpu.__init__(self, vpu_data)
+
+    def check_access(self) -> BaseReplyData:
+        """Check router access."""
+        logging.debug("custom_vpu: check_access")
+
+        return BaseReplyData("Ok", "check_access")
+
+    def tune_vpu(self) -> BaseReplyData:
+        """Tune VPU settings."""
+        logging.debug("custom_vpu: tune_vpu")
+
+        return BaseReplyData("Ok", "tune_vpu")
+
+    def create_net(self) -> BaseReplyData:
+        """Create net."""
+        logging.debug("custom_vpu: create_net")
+
+        return BaseReplyData("Ok", "create_net")
+
+    def delete_net(self) -> BaseReplyData:
+        """Delete net."""
+        logging.debug("custom_vpu: delete_net")
+
+        return BaseReplyData("Ok", "delete_net")
+Данные для подключения к коммутатору VPU-сети находятся в "vpu_data.router_info["router_info"]["netconf_params"]".
+
+Все данные по VPU можно посмотреть в методе self.vpu_info. Параметры описаны в классе BaseVpuData в файле проекта /vpu_common/vpu_helper.py.
+
+Например, чтобы получить параметры, переданные обработчику, используйте метод self.handler_params.
+
+Каждый файл-обработчик должен содержать функцию make_handler. Эта функция создаёт объект обработчика:
+
+Пример функции
+
+def make_handler(vpu_data: BaseVpuData) -> BaseVpu:
+    """Get object for VPU work.
+
+    Args:
+        vpu_data (BaseVpuData): VPU information
+
+    Return:
+        BaseVpu: Initialized vpu handler object
+    """  
+
+    return CustomVpuHandler(vpu_data)
+Методы для работы с VPU
+Чтобы DCImanager 6 мог взаимодействовать с VPU, переопределите методы класса BaseVpu:
+
+check_access — проверка доступа к маршрутизатору для работы с VPU;
+tune_vpu — предварительная конфигурация маршрутизатора при настройке модуля VPU;
+create_net — настройка VPU-сети на маршрутизаторе при создании этой сети в интерфейсе DCImanager 6;
+delete_net — удаление VPU сети на маршрутизаторе при удалении этой сети в интерфейсе DCImanager 6.
+При переопределении методов укажите требуемый формат запросов и возвращаемых значений. Все вспомогательные представления описаны в файле проекта /vpu_common/vpu_helper.py.
+
+Загрузка обработчика в платформуLink to Загрузка обработчика в платформу
+Чтобы загрузить обработчик в платформу:
+
+Создайте директорию со следующей структурой:
+
+handler_dir/
+├── __init__.py
+└── my_handler.py
+ Пояснения
+handler_dir — имя директории. В платформе не должно быть директории обработчика с таким же именем.
+
+__init__.py — файл инициализации. Если такого файла нет, создайте пустой файл с этим именем.
+
+my_handler.py — файл обработчика
+
+Создайте архив tar.gz с этой директорией: 
+
+tar -czvf custom_handler.tar.gz handler_dir
+ Пояснения к команде
+custom_handler.tar.gz — имя архива
+
+handler_dir –- имя созданной директории с обработчиком
+
+Авторизуйтесь в DCImanager 6 с правами администратора: 
+
+curl -o- -k https://domain.com/api/auth/v4/public/token \
+    -H "isp-box-instance: true" \
+    -d '{
+        "email": "<admin_email>",
+        "password": "<admin_pass>"
+    }'
+ Пояснения к команде
+domain.com — доменное имя сервера c DCImanager 6
+
+<admin_email> — email администратора DCImanager 6
+
+<admin_pass> — пароль администратора DCImanager 6
+
+В ответ придёт сообщение вида: 
+
+{"id":"24","token":"24-cee181d2-ccaa-4b64-a229-234aa7a25db6"}
+Сохраните из полученного ответа значение параметра token — токена авторизации.
+
+Создайте описание для обработчика: 
+
+curl -o- -k https://domain.com/api/eservice/v3/custom_equipment \
+    -H "isp-box-instance: true" \
+    -H "x-xsrf-token: <token>" \
+    -d '{
+        "device_type": "<device>",
+        "handler": "<internal_handler_name>",
+        "name": "<handler_name>",
+        "protocol": ["<handler_protocol>"],
+        "features": []
+    }'
+ Пояснения к команде
+domain.com — доменное имя сервера c DCImanager 6
+
+<token> — токен авторизации
+
+<device> — тип устройства. Возможные значения:
+
+switch — коммутатор;
+pdu — PDU;
+vpu — VPU
+<internal_handler_name> — уникальное внутреннее имя обработчика
+
+<handler_name> — имя обработчика для отображения в интерфейсе платформы
+
+<handler_protocol> — протокол для работы с обработчиком. Например, snmp
+
+Ответ будет содержать id созданного разработчика. Сохраните это значение.
+
+Пример ответа
+
+{"id": 1}
+Загрузите архив с обработчиком в платформу: 
+
+curl -o- -k https://domain.com/api/eservice/v3/custom_equipment/<handler_id>/content \
+    -H "isp-box-instance: true" \
+    -H "x-xsrf-token: <token>" \
+    -F "data=@custom_handler.tar.gz" \
+    -F "handler_import=<import_path>"
+ Пояснения к команде
+domain.com — доменное имя сервера c DCImanager 6
+
+<handler_id> — id обработчика
+
+<token> — токен авторизации
+
+custom_handler.tar.gz — имя архива с обработчиком
+
+<import_path> — относительный путь для импорта. Например, если файл обработчика my_handler.py находится в директории handler_dir, то относительный путь будет handler_dir.my_handler
+
+
+Обратите внимание!
+
+Вы также можете использовать эту команду для загрузки новых версий обработчика в платформу.
+
+Проверка обработчикаLink to Проверка обработчика
+Загрузите обработчик в платформу.
+Настройте модуль VPU.
+Проверьте как выполняются методы обработчика. Например, создайте или удалите VPU-сеть.
