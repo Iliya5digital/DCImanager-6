@@ -1,0 +1,18 @@
+Вы можете создать шаблон ОС Windows Server 2019 Datacenter Edition на основе шаблона Windows Server 2019 из репозитория ISPsystem. Для этого:
+
+Перейдите в Шаблоны → Шаблоны ОС.
+Если на локации нет шаблона Windows Server 2019, загрузите его: Загрузить шаблон ISPsystem → выберите Windows Server 2019 → Загрузить шаблон.
+Создайте копию шаблона Windows Server 2019: меню  → Копировать → введите Название шаблона → Копировать.
+Подключитесь к серверу-локации по SSH.
+Замените в файлах /opt/ispsystem/dci/os_templates/<Название_копии_шаблона>/Unattend.xml и /opt/ispsystem/dci/os_templates/<Название_копии_шаблона>/UnattendEFI.xml фрагмент 
+
+<MetaData wcm:action="add">
+    <Key>/IMAGE/INDEX</Key>
+    <Value>2</Value>
+</MetaData>
+на 
+
+<MetaData wcm:action="add">
+    <Key>/IMAGE/INDEX</Key>
+    <Value>4</Value>
+</MetaData>
