@@ -1,0 +1,39 @@
+Чтобы отменить загрузку ISO-образа на локацию:
+
+Получите токен авторизации:
+curl -X POST 'https://domain.com/api/auth/v4/public/token' -d '{"email": "admin_email", "password": "admin_pass"}'
+ Пояснения к команде
+domain.com — доменное имя или IP-адрес сервера с платформой
+
+admin_email — email администратора платформы
+
+admin_pass — пароль администратора платформы
+
+В ответ придёт сообщение вида:
+
+Пример ответа в JSON
+
+{
+  "confirmed": true,
+  "id": "6",
+  "token": "4-e9726dd9-61d9-2940-add3-914851d2cb8a"
+}
+Сохраните из полученного ответа значение параметра token — токен авторизации.
+
+Определите id задачи на загрузку образа: 
+
+curl -k -X GET -H "x-xsrf-token: <auth_token>" -H "isp-box-instance: true" "https://domain.com/api/taskmgr/v4/task?where=name+EQ+'iso_download'"
+ Пояснения к команде
+<auth_token> — токен авторизации
+
+domain.com — доменное имя или IP-адрес сервера с платформой
+
+Отмените задачу на загрузку образа:
+
+curl -k -d '{}' -H "x-xsrf-token: <auth_token>" -H "isp-box-instance: true" "https://domain.com/api/taskmgr/v4/task/<task_ID>/cancel"
+ Пояснения к команде
+<auth_token> — токен авторизации
+
+domain.com — доменное имя или IP-адрес сервера с платформой
+
+<task_ID> — id задачи
